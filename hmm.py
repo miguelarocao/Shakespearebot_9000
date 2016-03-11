@@ -84,7 +84,6 @@ class HMM:
         #note that our sequence starts from 0 instead of 1,
         #so alpha and beta also shift by 1 correspondingly, with
         #alpha and beta starting from -1 and going till seq_len -1
-<<<<<<< HEAD
 
         #for efficiency, train should be a sequence of indices of tokens
 
@@ -102,25 +101,6 @@ class HMM:
 #        for s in range(self.num_states):
 #            alpha_0[s] = self.O[x, s] * self.A[self.start_idx, s]
 #
-=======
-
-        #for efficiency, train should be a sequence of indices of tokens
-
-        #alpha(a, -1) = 1, if a = Start
-        #               0, otherwise
-        #alpha(a, 0) = P(train(0)|a) * P(a|Start)
-
-        #forward initialisation
-        alpha[self.start_idx, -1] = 1
-
-#        #for testing - this should be the same as alpha[:, 0]
-#        alpha_0 = np.zeros(np.shape(alpha[:, 0]))
-#
-#        x = self.myData.get_word_idx(train[0])
-#        for s in range(self.num_states):
-#            alpha_0[s] = self.O[x, s] * self.A[self.start_idx, s]
-#
->>>>>>> e848e6a90bb1253722c99658d0f9845baf8ee044
 #        #normalize
 #        alpha_0[:]/=sum(alpha_0[:])
 
@@ -219,13 +199,6 @@ class HMM:
         for s1 in range(self.num_states): #from
             for s2 in range(self.num_states): #to
                 den+=alpha[s1,j-1]*self.O[x,b]*self.A[s1,s2]*beta[s2,j]
-<<<<<<< HEAD
-
-        if den==0:
-            #to avoid division by 0
-            den=1
-=======
->>>>>>> e848e6a90bb1253722c99658d0f9845baf8ee044
 
         if den==0:
             #to avoid division by 0
