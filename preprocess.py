@@ -1,9 +1,9 @@
-#Preprocessing Class
+#Preprocessing Classes and Functions
 
 import numpy as np
 import string
 
-class preProcess:
+class dataHandler:
 
     def __init__(self,filename):
         """Constructor. Calls import_data()."""
@@ -23,6 +23,9 @@ class preProcess:
             self.data_dict[item]=[]
 
         self.rhyming_dict={}
+
+        self.word_dict={}
+        self.idx_dict={}
 
         self.import_data()
 
@@ -59,9 +62,9 @@ class preProcess:
                         rhyming_arr=[]
                         continue
 
-                    #remove punctuation
+                    #remove punctuation and make lowercase
                     for i in range(len(line)):
-                        line[i]=line[i].translate(None,string.punctuation)
+                        line[i]=line[i].translate(None,string.punctuation).lower()
 
                     self.data_dict[self.line_type[in_line_cnt]].append(line)
 
@@ -76,13 +79,11 @@ class preProcess:
 
         print "Loaded "+str(poem_cnt)+" poems from "+self.filename+"."
 
-        print "Length: "+str(sum(len(v) for v in self.rhyming_dict.itervalues()))
-
         #print self.rhyming_dict
-        print self.rhyming_dict['sway']
-        print self.rhyming_dict['day']
+        #print self.rhyming_dict['sway']
+        #print self.rhyming_dict['day']
 
-        print self.get_rhyme('sway')
+        #print self.get_rhyme('sway')
 
         return
 
@@ -141,14 +142,60 @@ class preProcess:
         else:
             return self.data_dict[stanza]
 
+    def get_num_words(self):
+        """Returns the number of unique words in the imported poems."""
+
+        if not self.word_dict:
+            print "get_num_words() WARNING: Please generate word dictionary first!"
+            return
+
+        return len(self.word_dict)
+
+    def gen_word_idx(self,stanza=None):
+        """Generates a dictionary of words mapped to unique indices and vice versa.
+        Optinal stanza input only does this over a specific stanza"""
+
+        #else generate
+        if not stanza:
+            all_words=self.get_all_data()
+        else:
+            all_words=self.get_stanza_data(stanza)
+
+        word_count=0
+        for word_list in all_words:
+            for word in word_list:
+                try:
+                    self.word_dict[word]
+                except KeyError:
+                    self.word_dict[word]=word_count
+                    self.idx_dict[word_count]=word
+                    word_count+=1
+        return
+
+    def get_word_idx(self,word):
+        """Returns index associated with a given word"""
+        return self.word_dict[word]
+
+    def get_idx_word(self,idx):
+        """Returns word associated with a given index"""
+        return self.idx_dict[idx]
 
 def main():
     """Proprocessing tests and examples"""
 
     filename='data/shakespeare.txt'
-    data=preProcess(filename)
-    print data.get_all_data()
-    print data.get_stanza_data("couplet")
+    data=dataHandler(filename)
+    #print data.get_all_data()
+    #print data.get_stanza_data("couplet")
+    data.gen_word_idx()
+
+    #print data.word_dict
+
+    print data.get_num_words()
+    print len(data.word_dict)
+    print data.get_word_idx('sway')
+    print data.get_idx_word(data.get_word_idx('sway'))
+
     pass
 
 if __name__ == '__main__':
