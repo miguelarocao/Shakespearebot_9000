@@ -88,6 +88,8 @@ class HMM:
                 x=self.myData.get_word_idx(train[t+1])
                 prod=np.multiply(self.A[s,:],self.O[x,:])
                 beta[s,t]=np.dot(beta[:,t+1],prod)
+                if s==5:
+                    continue
 
             #normalize
             beta[:,t]/=sum(beta[:,t])
