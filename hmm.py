@@ -317,18 +317,18 @@ class HMM:
 
 def main():
 
-    filename='data/shakespeare.txt'
+    filenames=['data/shakespeare.txt','data/spenser.txt']
 
     qHMM=HMM("quatrain")
-    qHMM.load_data(filename)
+    qHMM.load_data(filenames)
     qHMM.train()
 
     vHMM=HMM("volta")
-    vHMM.load_data(filename)
+    vHMM.load_data(filenames)
     vHMM.train()
 
     cHMM=HMM("couplet")
-    cHMM.load_data(filename)
+    cHMM.load_data(filenames)
     cHMM.train()
 
     poem_dict={"quatrain":qHMM,"volta":vHMM,"couplet":cHMM}
@@ -336,7 +336,7 @@ def main():
     HMM.generate_poem(poem_dict)
 
 ##    myHMM=HMM()
-##    myHMM.load_data(filename)
+##    myHMM.load_data(filenames)
 ##    myHMM.train()
 ##
 ##    HMM.generate_poem(myHMM)

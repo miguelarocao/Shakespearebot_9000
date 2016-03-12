@@ -13,12 +13,11 @@ import hyphen.dictools as dicttools
 
 class dataHandler:
 
-    def __init__(self, filename, null_append,stanza="all"):
+    def __init__(self, filenames, null_append,stanza="all"):
         """Constructor. Calls import_data()."""
-        self.filename=filename
+        self.filenames=filenames
         self.poem_length=14
         self.num_syllables=10
-        self.syllable_file=filename[:-4]+"_syllables.json"
         self.stanza=stanza
 
         #key is line number, string is stanza
@@ -39,11 +38,16 @@ class dataHandler:
         for item in self.name:
             self.data_dict[item]=[]
 
+        #handles case where input is a single filename instead of a list
+        if not isinstance(self.filenames,list):
+            self.filenames=[self.filenames]
+
         #initialization
-        self.import_data()
+        for filename in self.filenames:
+            self.import_data(filename)
         self.pyhyphen_setup()
 
-    def import_data(self):
+    def import_data(self,filename):
         """Imports the poem data from given filename"""
 
         poem_cnt=0
@@ -51,16 +55,18 @@ class dataHandler:
         in_line_cnt=0 #keeps track of current line in poem
         rhyming_arr=[]
 
+        syllable_file=filename[:-4]+"_syllables.json"
+
         #check if need to generate syllable dictionary
         syl_found=False
         try:
-            temp_dict=json.load(open(self.syllable_file))
+            temp_dict=json.load(open(syllable_file))
             syl_found=True
             for key,value in temp_dict.iteritems():
                 self.syllable_dict[str(key)]=value
-            print "Succesfully loaded syllable information from: "+self.syllable_file
+            print "Succesfully loaded syllable information from: "+syllable_file
         except IOError:
-            print "Failed to load syllable information, "+self.syllable_file+" not found."
+            print "Failed to load syllable information, "+syllable_file+" not found."
             print "Importing poems and generating syllable information..."
 
 
@@ -68,7 +74,7 @@ class dataHandler:
         custom_punctuation=string.punctuation.replace('-','').replace("'",'')
 
         in_text=False
-        with open(self.filename,'r') as f:
+        with open(filename,'r') as f:
             for line in f.readlines():
                 #removes leading and trailing \n and spaces
                 line=line.strip()
@@ -126,11 +132,11 @@ class dataHandler:
             in_poem=False
             poem_cnt+=1
 
-        print "Loaded "+str(poem_cnt)+" poems from "+self.filename+"."
+        print "Loaded "+str(poem_cnt)+" poems from "+filename+"."
 
         if not syl_found:
-            json.dump(self.syllable_dict,open(self.syllable_file,'w'))
-            print "Wrote syllable information to "+str(self.syllable_file)
+            json.dump(self.syllable_dict,open(syllable_file,'w'))
+            print "Wrote syllable information to "+str(syllable_file)
 
         return
 
@@ -240,7 +246,7 @@ class dataHandler:
         Output is a string."""
 
         #word_max=10 #maximum number of words per line
-        special_prob=0.2 #probability that we add special punctuation
+        special_prob=0.15 #probability that we add special punctuation
         special_punc=['!','?',';']
 
         poem_arr=[] #list of lists
