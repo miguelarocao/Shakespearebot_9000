@@ -44,9 +44,9 @@ class dataHandler:
             self.filenames=[self.filenames]
 
         #initialization
+        self.syllable_setup()
         for filename in self.filenames:
             self.import_data(filename)
-        self.syllable_setup()
 
     def import_data(self,filename):
         """Imports the poem data from given filename"""
@@ -249,17 +249,16 @@ class dataHandler:
         #word_max=10 #maximum number of words per line
         special_prob=0.15 #probability that we add special punctuation
         special_punc=['!','?',';','.']
+        special_words=['i']
 
         poem_arr=[] #list of lists
-        line_count=0
         for i in range(self.poem_length):
             syllable_count=0
             curr_state=0 #start state
             line=[]
             word_count=0
             new_stress=1
-            if self.stanza!="all" and self.line_type[line_count]!=self.stanza:
-                line_count+=1
+            if self.stanza!="all" and self.line_type[i]!=self.stanza:
                 continue
             while True:
                 #get new state at random
@@ -270,7 +269,9 @@ class dataHandler:
                 if not line:
                     #first word
                     try:
-                        word=self.get_rhyme(poem_arr[self.rhyming_pairs[i]][-1])
+                        relative_rhyme=(self.rhyming_pairs[i]-i)+len(poem_arr)
+                        #print relative_rhyme
+                        word=self.get_rhyme(poem_arr[relative_rhyme][-1])
                         if word:
                             gen_word=False
                         #print poem_arr[self.rhyming_pairs[i]][-1]+" "+str(word)
@@ -301,7 +302,11 @@ class dataHandler:
                 if not success and not line:
                     new_stress=syl_stress[0][0]^1
 
+                #check if special word
+                if word in special_words:
+                    word=word.capitalize()
 
+                #print word+" "+str(syl_num)+" ",
                 line.append(word)
                 word_count+=1
                 #check end conditions: end state or syllable max reached
@@ -314,7 +319,6 @@ class dataHandler:
 
             #add to poem
             poem_arr.append(line)
-            line_count+=1
 
         #Convert to text
         poem=""
@@ -339,7 +343,7 @@ class dataHandler:
         Optional input gives maximum syllable"""
 
         #since syllable labelling isn't totally accurate
-        max_syl_thresh=1
+        max_syl_thresh=0
 
         #set probabilities to 0
         for i in range(len(distr)):
@@ -418,11 +422,11 @@ class dataHandler:
                 is_stress=not(is_stress)
 
             #if don't match then append both, saying it can be either stress
-            if syl_stress_order!=syl_stress:
+            if syl_stress_order!=syl_stress and syl_stress:
                 if syl_stress:
                     syl_stress=[syl_stress_order,syl_stress]
-                else:
-                    syl_stress=[syl_stress_order]
+            else:
+                syl_stress=[syl_stress_order]
 
             self.syllable_dict[word]=[syl_num,syl_stress]
 
@@ -454,10 +458,12 @@ def main():
 
     #hyp_list=pyhyphen_setup()
 
-    check='Supposeth deny slow vex dates subtleties greedy spill part,'.split(' ')
+    check="Seen leads admiring up winter's cruelty".split(' ')
     for word in check:
         print word+" ",
         print data.parse_word(word)
+
+    #data.gen_syllable_info(check)
 
     #print get_syllable_info("summer")
 
