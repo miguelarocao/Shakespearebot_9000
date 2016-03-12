@@ -13,7 +13,7 @@ import hyphen.dictools as dicttools
 
 class dataHandler:
 
-    def __init__(self,filename):
+    def __init__(self, filename, null_append):
         """Constructor. Calls import_data()."""
         self.filename=filename
         self.poem_length=14
@@ -24,6 +24,7 @@ class dataHandler:
         self.name=np.array(["quatrain","volta","couplet"])
         self.count=np.array([8,4,2])
         self.line_type=list(np.repeat(self.name,self.count))
+        self.null_added = null_append
 
         #value is index with which current index rhymes with
         self.rhyming_pairs=[2,3,0,1,6,7,4,5,10,11,8,9,13,12]
@@ -101,10 +102,14 @@ class dataHandler:
                     #generate syllable information
                     if not syl_found:
                         self.gen_syllable_info(line)
-                    print "Loaded line "+str(in_line_cnt)+" of 14"
+                        print "Loaded line "+str(in_line_cnt)+" of 14"
 
                     #reverse
                     line.reverse()
+
+                    if self.null_added == 1:
+                        #append a 'NULL' at the end
+                        line.append("NULL")
 
                     self.data_dict[self.line_type[in_line_cnt]].append(line)
 
@@ -260,7 +265,7 @@ class dataHandler:
                 else:
                     #not first word!
                     idx=range(np.shape(O)[0]) #number of rows
-                    modprob=self.get_sliced_distr(O[:,new_state],new_stress)
+                    modprob=self.get_sliced_distr(O[:,new_state],new_stress,self.num_syllables-syllable_count)
                     distr=scipy.stats.rv_discrete(values=(idx,tuple(modprob)))
                     word_idx=distr.rvs()
                     word=self.get_idx_word(word_idx)
@@ -313,20 +318,32 @@ class dataHandler:
         else:
             print poem
 
-    def get_sliced_distr(self,distr,end_stress):
+    def get_sliced_distr(self,distr,end_stress,max_syl=None):
         """Modifies the distribution such that only words ending with the provided
-        last stress syllable are next."""
+        last stress syllable are next.
+        Optional input gives maximum syllable"""
+
+        #since syllable labelling isn't totally accurate
+        max_syl_thresh=1
 
         #set probabilities to 0
         for i in range(len(distr)):
             good=False
-            syl_num,syl_stress=self.syllable_dict[self.get_idx_word(i)]
-            #print syl_stress
-            for stress in syl_stress:
-                if stress[-1]==end_stress:
-                    distr[i]+=1e-9 #avoids division by zero
-                    good=True
-                    break
+            try:
+                syl_num,syl_stress=self.syllable_dict[self.get_idx_word(i)]
+                #check intonation
+                for stress in syl_stress:
+                    if stress[-1]==end_stress:
+                        distr[i]+=1e-9 #avoids division by zero
+                        good=True
+                        break
+                #check count if necessary
+                if max_syl:
+                    if syl_num>(max_syl+max_syl_thresh):
+                        good=False
+            except KeyError:
+                #happens with NULL token
+                pass
 
             if not good:
                 distr[i]=0
