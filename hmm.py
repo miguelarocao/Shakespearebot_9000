@@ -8,7 +8,7 @@ from numpy import linalg as LA
 class HMM:
     #HMM class
 
-    def __init__(self):
+    def __init__(self,stanza="all"):
         #number of hidden states
         self.num_hidden=4
         self.num_states=self.num_hidden+2 #start and end state
@@ -23,9 +23,12 @@ class HMM:
         self.O=None #Observation Matrix: Rows->Observations, Columns->State
         self.threshold = 0.001 #threshold for fractional change in norm
         self.null_added = 1 #have nulls been appended?
+        self.stanza=stanza #stanza type
+
+        print "Created HMM to be trained on "+stanza+" data."
 
     def load_data(self,filename):
-        self.myData=dataHandler(filename, self.null_added)
+        self.myData=dataHandler(filename, self.null_added, self.stanza)
         self.myData.gen_word_idx()
         self.num_words=self.myData.get_num_words()
         self.train_data=self.myData.get_all_data()
@@ -117,10 +120,8 @@ class HMM:
         print("Finished")
         self.A = self.get_division(A_n, A_d)
         self.O = self.get_division(O_n, O_d)
-        np.save("A", self.A)
-        np.save("O", self.O)
-
-        self.myData.generate_poem(self.A,self.O)
+        np.save("A_"+self.stanza, self.A)
+        np.save("O_"+self.stanza, self.O)
 
     def e_step(self,alpha,beta,train):
         """Uses forward-backward approach to calculate expectation"""
@@ -281,14 +282,64 @@ class HMM:
         Ones = np.ones(np.shape(M_num))
         return np.copy(M_num/(np.maximum(M_den, Ones)))
 
+    def generate_lines(self):
+        return self.myData.generate_lines(self.A,self.O)
+
+    @staticmethod
+    def generate_poem(hmms,filename=None):
+        """Generates poem based on hmms. Input can either be a single hmm or a
+        dictionary of hmms with keys 'volta', 'quatrain' and 'couplet'."""
+        poem=""
+
+        try:
+            print "Generating poem for multi-stanza types."
+
+            #quatrain
+            poem+=hmms["quatrain"].generate_lines()
+            #volta
+            poem+=hmms["volta"].generate_lines()
+            #couplet
+            poem+=hmms["couplet"].generate_lines()
+            if len(hmms)>3:
+                raise AssertionError("generate_poem(): invalid input!")
+
+        except AttributeError:
+            #single input
+            print "Generating poem for stanza type \""+hmms.stanza+"\""
+            poem=hmms.generate_lines()
+
+        if filename:
+            f=open(filename,'w')
+            f.write(poem)
+            f.close()
+        else:
+            print poem
 
 def main():
 
     filename='data/shakespeare.txt'
 
-    myHmm=HMM()
-    myHmm.load_data(filename)
-    myHmm.train()
+    qHMM=HMM("quatrain")
+    qHMM.load_data(filename)
+    qHMM.train()
+
+    vHMM=HMM("volta")
+    vHMM.load_data(filename)
+    vHMM.train()
+
+    cHMM=HMM("couplet")
+    cHMM.load_data(filename)
+    cHMM.train()
+
+    poem_dict={"quatrain":qHMM,"volta":vHMM,"couplet":cHMM}
+
+    HMM.generate_poem(poem_dict)
+
+##    myHMM=HMM()
+##    myHMM.load_data(filename)
+##    myHMM.train()
+##
+##    HMM.generate_poem(myHMM)
 
     pass
 

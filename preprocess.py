@@ -13,17 +13,18 @@ import hyphen.dictools as dicttools
 
 class dataHandler:
 
-    def __init__(self, filename, null_append):
+    def __init__(self, filename, null_append,stanza="all"):
         """Constructor. Calls import_data()."""
         self.filename=filename
         self.poem_length=14
         self.num_syllables=10
         self.syllable_file=filename[:-4]+"_syllables.json"
+        self.stanza=stanza
 
         #key is line number, string is stanza
         self.name=np.array(["quatrain","volta","couplet"])
-        self.count=np.array([8,4,2])
-        self.line_type=list(np.repeat(self.name,self.count))
+        self.stanza_count=np.array([8,4,2])
+        self.line_type=list(np.repeat(self.name,self.stanza_count))
         self.null_added = null_append
 
         #value is index with which current index rhymes with
@@ -111,9 +112,12 @@ class dataHandler:
                         #append a 'NULL' at the end
                         line.append("NULL")
 
-                    self.data_dict[self.line_type[in_line_cnt]].append(line)
-
-                    rhyming_arr.append(line[0])
+                    #only append if the correct stanza type:
+                    if self.stanza=="all" or self.stanza==self.line_type[in_line_cnt]:
+                        self.data_dict[self.line_type[in_line_cnt]].append(line)
+                        rhyming_arr.append(line[0])
+                    else:
+                        rhyming_arr.append(None)
                     in_line_cnt+=1
 
         f.close()
@@ -135,6 +139,8 @@ class dataHandler:
             raise AssertionError("populate_rhyming(): Invalid input!")
 
         for r in range(len(rhyming_arr)):
+            if not rhyming_arr[r]:
+                continue
             rhyme=rhyming_arr[self.rhyming_pairs[r]]
             word=rhyming_arr[r]
             #check word as key
@@ -228,22 +234,26 @@ class dataHandler:
         return self.idx_dict[idx]
 
     ####GENERATION
-    def generate_poem(self,A,O,filename=None):
+    def generate_lines(self,A,O):
         """Generates a poem based on the transition matrix A and the
         observation matrix O.
-        Optional input prints to screen by default, otherwise writes to file."""
+        Output is a string."""
 
         #word_max=10 #maximum number of words per line
         special_prob=0.2 #probability that we add special punctuation
         special_punc=['!','?',';']
 
         poem_arr=[] #list of lists
+        line_count=0
         for i in range(self.poem_length):
             syllable_count=0
             curr_state=0 #start state
             line=[]
             word_count=0
             new_stress=1
+            if self.stanza!="all" and self.line_type[line_count]!=self.stanza:
+                line_count+=1
+                continue
             while True:
                 #get new state at random
                 idx=range(len(A[curr_state]))
@@ -297,6 +307,7 @@ class dataHandler:
 
             #add to poem
             poem_arr.append(line)
+            line_count+=1
 
         #Convert to text
         poem=""
@@ -309,14 +320,10 @@ class dataHandler:
                 punctuation=','
             poem+=(line+punctuation+"\n")
 
-        poem=poem[:-2]
+        if self.stanza in ["all","couplet"]:
+            poem=poem[:-2]
 
-        if filename:
-            f=open(filename,'w')
-            f.write(poem)
-            f.close()
-        else:
-            print poem
+        return poem
 
     def get_sliced_distr(self,distr,end_stress,max_syl=None):
         """Modifies the distribution such that only words ending with the provided
