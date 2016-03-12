@@ -66,59 +66,53 @@ class HMM:
         self.A[self.start_idx,self.start_idx]=0
         #end is guaranteed to stay in end state
         self.A[self.end_idx,self.end_idx]=1
-                
-        #For re-use
-        A_start = np.copy(self.A)
-        O_start = np.copy(self.O)
-        
+                        
         #For testing
         A_test = self.A
         O_test = self.O
         
-        A_n=np.zeros(np.shape(self.A))
-        A_d=np.zeros(np.shape(self.A))
-        O_n=np.zeros(np.shape(self.O))
-        O_d=np.zeros(np.shape(self.O))
+        A_norm_old = 0
+        A_norm = LA.norm(self.A)
+        O_norm_old = 0
+        O_norm = LA.norm(self.O)
+        count = 0
+        while ((abs(A_norm - A_norm_old)/A_norm > self.threshold) or \
+        (abs(O_norm - O_norm_old)/O_norm > self.threshold)):
+            A_norm_old = A_norm
+            O_norm_old = O_norm                
+            sequence_no = 0
+            A_n=np.zeros(np.shape(self.A))
+            A_d=np.zeros(np.shape(self.A))
+            O_n=np.zeros(np.shape(self.O))
+            O_d=np.zeros(np.shape(self.O))
 
-        sequence_no = 0
-        for training_seq in self.train_data:
-            self.A = np.copy(A_start)
-            self.O = np.copy(O_start)
-            A_norm_old = 0
-            A_norm = LA.norm(self.A)
-            O_norm_old = 0
-            O_norm = LA.norm(self.O)
-            count = 0
-            while ((abs(A_norm - A_norm_old)/A_norm > self.threshold) or \
-            (abs(O_norm - O_norm_old)/O_norm > self.threshold)) and count < 20:
-                A_norm_old = A_norm
-                O_norm_old = O_norm                
+            for training_seq in self.train_data:
                 alpha=np.zeros((self.num_states,len(training_seq)+1))
                 beta=np.zeros((self.num_states,len(training_seq)+1))
                 #expectation step
                 self.e_step(alpha,beta,training_seq)
                 #maximization step
                 A_num, A_den, O_num, O_den = self.m_step(alpha,beta,training_seq)
-                self.A = self.get_division(A_num, A_den)
-                self.O = self.get_division(O_num, O_den)
-                A_norm = LA.norm(self.A)
-                O_norm = LA.norm(self.O)
-                A_test = self.A
-                O_test = self.O
-                count += 1
-                print "sequence = " + str(sequence_no) + " count = " + str(count)
-            #converged
-            A_n += A_num
-            A_d += A_den
-            O_n += O_num
-            O_d += O_den
-            sequence_no += 1
+                A_n += A_num
+                A_d += A_den
+                O_n += O_num
+                O_d += O_den
+                if sequence_no%100 == 0:
+                    print "count = " + str(count) + " sequence = " + str(sequence_no)
+                sequence_no += 1
+                
+            self.A = self.get_division(A_n, A_d)
+            self.O = self.get_division(O_n, O_d)
+            A_norm = LA.norm(self.A)
+            O_norm = LA.norm(self.O)
+            A_test = self.A
+            O_test = self.O
+            print "count = " + str(count)
+            count += 1
         
         print("Finished")
-        self.A = self.get_division(A_n, A_d)
-        self.O = self.get_division(O_n, O_d)
-        np.save("A", self.A)
-        np.save("O", self.O)
+        np.save("A_2", self.A)
+        np.save("O_2", self.O)
         
 
 

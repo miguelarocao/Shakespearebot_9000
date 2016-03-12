@@ -5,7 +5,7 @@ import string
 
 class dataHandler:
 
-    def __init__(self,filename):
+    def __init__(self, filename, null_append):
         """Constructor. Calls import_data()."""
         self.filename=filename
         self.poem_length=14
@@ -14,6 +14,7 @@ class dataHandler:
         self.name=np.array(["quatrain","volta","couplet"])
         self.count=np.array([8,4,2])
         self.line_type=list(np.repeat(self.name,self.count))
+        self.null_added = null_append
 
         #value is index with which current index rhymes with
         self.rhyming_pairs=[2,3,0,1,6,7,4,5,10,11,8,9,13,12]
@@ -65,6 +66,10 @@ class dataHandler:
                     #remove punctuation and make lowercase
                     for i in range(len(line)):
                         line[i]=line[i].translate(None,string.punctuation).lower()
+                        
+                    if self.null_added == 1:
+                        #append a 'NULL' at the end
+                        line.append("NULL")
 
                     self.data_dict[self.line_type[in_line_cnt]].append(line)
 
