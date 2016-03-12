@@ -3,6 +3,7 @@
 from preprocess import dataHandler
 import numpy as np
 import sys
+from numpy import linalg as LA
 
 class HMM:
     #HMM class
@@ -20,9 +21,11 @@ class HMM:
         #to be filled in training
         self.A=None #Transition Matrix: Rows->From & Columns->To
         self.O=None #Observation Matrix: Rows->Observations, Columns->State
+        self.threshold = 0.001 #threshold for fractional change in norm
+        self.null_added = 1 #have nulls been appended?
 
     def load_data(self,filename):
-        self.myData=dataHandler(filename)
+        self.myData=dataHandler(filename, self.null_added)
         self.myData.gen_word_idx()
         self.num_words=self.myData.get_num_words()
         self.train_data=self.myData.get_all_data()
@@ -41,8 +44,15 @@ class HMM:
         #Columns sum to 1
         self.O=np.zeros((self.num_words,self.num_states))
         self.O=np.transpose(self.O)
-        for row in range(1,self.num_states):
+        for row in range(1,self.num_states-1):
             self.O[row,:]=np.random.dirichlet(np.ones(self.num_words),size=1)
+            
+        #Last state - 
+        if self.null_added == 0:
+            self.O[self.end_idx,:]=np.random.dirichlet(np.ones(self.num_words),size=1)
+        else:
+            self.O[self.end_idx, self.myData.get_word_idx("NULL")] = 1
+        
         self.O=np.transpose(self.O)
 
         #set start values
@@ -53,27 +63,57 @@ class HMM:
         self.A[self.start_idx,self.start_idx]=0
         #end is guaranteed to stay in end state
         self.A[self.end_idx,self.end_idx]=1
-
-        #For checking
+                
+        #For re-use
+        A_start = np.copy(self.A)
+        O_start = np.copy(self.O)
+        
+        #For testing
         A_test = self.A
         O_test = self.O
-
-        #For checking
-        A_test = self.A
-        O_test = self.O
+        
+        A_n=np.zeros(np.shape(self.A))
+        A_d=np.zeros(np.shape(self.A))
+        O_n=np.zeros(np.shape(self.O))
+        O_d=np.zeros(np.shape(self.O))
 
         #repeat until convergence, single step for now
-        #TO DO: Add while loop
+        sequence_no = 0
         for training_seq in self.train_data:
-            alpha=np.zeros((self.num_states,len(training_seq)+1))
-            beta=np.zeros((self.num_states,len(training_seq)+1))
-            #expectation step
-            self.e_step(alpha,beta,training_seq)
-            #maximization step
-            A,O=self.m_step(alpha,beta,training_seq)
-            print A
-            print O
-            break
+            self.A = np.copy(A_start)
+            self.O = np.copy(O_start)
+            A_norm_old = 0
+            A_norm = LA.norm(self.A)
+            O_norm_old = 0
+            O_norm = LA.norm(self.O)
+            count = 0
+            while ((abs(A_norm - A_norm_old)/A_norm > self.threshold) or \
+            (abs(O_norm - O_norm_old)/O_norm > self.threshold)) and count < 20:
+                A_norm_old = A_norm
+                O_norm_old = O_norm                
+                alpha=np.zeros((self.num_states,len(training_seq)+1))
+                beta=np.zeros((self.num_states,len(training_seq)+1))
+                #expectation step
+                self.e_step(alpha,beta,training_seq)
+                #maximization step
+                A_num, A_den, O_num, O_den = self.m_step(alpha,beta,training_seq)
+                self.A = self.get_division(A_num, A_den)
+                self.O = self.get_division(O_num, O_den)
+                A_norm = LA.norm(self.A)
+                O_norm = LA.norm(self.O)
+                A_test = self.A
+                O_test = self.O
+                count += 1
+                print "sequence = " + str(sequence_no) + " count = " + str(count)
+            #converged
+            A_n += A_num
+            A_d += A_den
+            O_n += O_num
+            O_d += O_den
+        
+        print("Finished")
+        
+
 
     def e_step(self,alpha,beta,train):
         """Uses forward-backward approach to calculate expectation"""
@@ -84,26 +124,16 @@ class HMM:
         #note that our sequence starts from 0 instead of 1,
         #so alpha and beta also shift by 1 correspondingly, with
         #alpha and beta starting from -1 and going till seq_len -1
-
+        
         #for efficiency, train should be a sequence of indices of tokens
-
+        
         #alpha(a, -1) = 1, if a = Start
         #               0, otherwise
         #alpha(a, 0) = P(train(0)|a) * P(a|Start)
-
+                
         #forward initialisation
         alpha[self.start_idx, -1] = 1
-
-#        #for testing - this should be the same as alpha[:, 0]
-#        alpha_0 = np.zeros(np.shape(alpha[:, 0]))
-#
-#        x = self.myData.get_word_idx(train[0])
-#        for s in range(self.num_states):
-#            alpha_0[s] = self.O[x, s] * self.A[self.start_idx, s]
-#
-#        #normalize
-#        alpha_0[:]/=sum(alpha_0[:])
-
+        
         #forward
         for t in range(seq_len):
             x = self.myData.get_word_idx(train[t])
@@ -116,7 +146,7 @@ class HMM:
         #backwards initialisation
         #note that beta[seq_len -1] = beta[-2] is the final beta
         beta[:, seq_len -1] = self.A[:,self.end_idx]
-
+            
         #backwards
         for t in range(seq_len-2,-2,-1):
             x=self.myData.get_word_idx(train[t+1])
@@ -131,13 +161,13 @@ class HMM:
 
     def m_step(self,alpha,beta,train):
 
-        A=np.zeros(np.shape(self.A))
-        O=np.zeros(np.shape(self.O))
-
+        A_num=np.zeros(np.shape(self.A))
+        A_den=np.zeros(np.shape(self.A))
+        O_num=np.zeros(np.shape(self.O))
+        O_den=np.zeros(np.shape(self.O))
+        
         #update A
         for s_from in range(self.num_states-1): #from: skip end state
-
-            #for s_to in range(1,self.num_states): #to: #skip from state
             #not skipping from state for verification
             for s_to in range(self.num_states):
                 #compute transition for each state
@@ -147,19 +177,23 @@ class HMM:
                     x=self.myData.get_word_idx(train[j])
                     num_sum+=self.get_triple_marginal(j,alpha,beta,s_from,s_to,x)
                     den_sum+=self.get_double_marginal(j-1,alpha,beta,s_from,x)
-                if num_sum==0 and den_sum==0:
-                    #TO DO: Double check this
-                    #Avoids division by 0
-                    den_sum=1
-                A[s_from,s_to]=num_sum/den_sum
-
-        A[self.end_idx, self.end_idx] = 1
-
-        A[self.end_idx, self.end_idx] = 1
+                
+                A_num[s_from,s_to] = num_sum
+                A_den[s_from,s_to] = den_sum
+        
+        A_num[self.end_idx, self.end_idx] = 1
+        A_den[self.end_idx, self.end_idx] = 1
 
         #update O
+        if self.null_added == 1:
+            end_iter = self.num_states - 1
+            O_num[self.myData.get_word_idx("NULL"), self.end_idx] = 1
+            O_den[self.myData.get_word_idx("NULL"), self.end_idx] = 1
+        else:
+            end_iter = self.num_states
+            
         for word in range(self.num_words):
-            for state in range(1,self.num_states-1): #skip start and end state
+            for state in range(1, end_iter): #skip start state
                 num_sum=0 #numerator sum
                 den_sum=0 #denominator sum
                 for j in range(len(train)):
@@ -169,12 +203,13 @@ class HMM:
                     if x==word:
                         num_sum+=temp
                     den_sum+=temp
-                if den_sum==0:
-                    #Avoids division by 0
-                    den_sum=1
-                O[word,state]=num_sum/den_sum
+#                if den_sum==0:
+#                    #Avoids division by 0
+#                    den_sum=1
+                O_num[word, state] = num_sum
+                O_den[word, state] = den_sum
 
-        return A,O
+        return A_num, A_den, O_num, O_den
 
     def get_double_marginal(self,j,alpha,beta,a,x):
         """Returns P(y_j=a,x_j). Equation (12). j >= -1."""
@@ -203,9 +238,13 @@ class HMM:
         if den==0:
             #to avoid division by 0
             den=1
-
+        
         #return probability
         return alpha[a,j-1]*self.O[x,b]*self.A[a,b]*beta[b,j]/den
+        
+    def get_division(self, M_num, M_den):
+        Ones = np.ones(np.shape(M_num))
+        return np.copy(M_num/(np.maximum(M_den, Ones)))
 
 
 def main():
