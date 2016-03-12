@@ -35,6 +35,7 @@ class dataHandler:
         self.word_dict={}
         self.idx_dict={}
         self.data_dict={}
+        self.cmu_dict={}
         for item in self.name:
             self.data_dict[item]=[]
 
@@ -45,7 +46,7 @@ class dataHandler:
         #initialization
         for filename in self.filenames:
             self.import_data(filename)
-        self.pyhyphen_setup()
+        self.syllable_setup()
 
     def import_data(self,filename):
         """Imports the poem data from given filename"""
@@ -109,7 +110,7 @@ class dataHandler:
                     #generate syllable information
                     if not syl_found:
                         self.gen_syllable_info(line)
-                        print "Loaded line "+str(in_line_cnt)+" of 14"
+                        #print "Loaded line "+str(in_line_cnt)+" of 14"
 
                     #reverse
                     line.reverse()
@@ -247,7 +248,7 @@ class dataHandler:
 
         #word_max=10 #maximum number of words per line
         special_prob=0.15 #probability that we add special punctuation
-        special_punc=['!','?',';']
+        special_punc=['!','?',';','.']
 
         poem_arr=[] #list of lists
         line_count=0
@@ -328,6 +329,7 @@ class dataHandler:
 
         if self.stanza in ["all","couplet"]:
             poem=poem[:-2]
+            poem+='.'
 
         return poem
 
@@ -367,7 +369,7 @@ class dataHandler:
         return distr
 
 
-    def pyhyphen_setup(self):
+    def syllable_setup(self):
         """Sets up pyhyphen"""
         en_list=['en_CA', 'en_PH', 'en_NA', 'en_NZ', 'en_JM', 'en_BS', 'en_US',
                     'en_IE', 'en_MW', 'en_IN', 'en_BZ', 'en_TT', 'en_ZA', 'en_AU',
@@ -376,22 +378,24 @@ class dataHandler:
         for lang in en_list:
             if not dicttools.is_installed(lang): dicttools.install(lang)
 
+        self.cmu_dict = cmudict.dict()
+
         return
 
     def parse_word(self,word):
         """Returns syllables and stress of each syllable if exists, else None.
         First tries using NLTK cmudict, if failes then uses pyhyphen."""
-        d = cmudict.dict()
+
         syl_stress=None
-        #try:
-        #    word_info=d[word.lower()][0] #no way to differentiate between different pronunciation
-        #    syl_num=len(list(y for y in word_info if y[-1].isdigit()))
-        #    syl_stress=list(int(y[-1]) for y in word_info if y[-1].isdigit())
-        #except KeyError:
-        h_en=Hyphenator('en_GB')
-        syl_num=len(h_en.syllables(unicode(word)))
-        if syl_num==0:
-            syl_num=1
+        try:
+            word_info=self.cmu_dict[word.lower()][0] #no way to differentiate between different pronunciation
+            syl_num=len(list(y for y in word_info if y[-1].isdigit()))
+            syl_stress=list(int(y[-1]) for y in word_info if y[-1].isdigit())
+        except KeyError:
+            h_en=Hyphenator('en_GB')
+            syl_num=len(h_en.syllables(unicode(word)))
+            if syl_num==0:
+                syl_num=1
 
         return syl_num,syl_stress
 
@@ -429,14 +433,14 @@ class dataHandler:
                 max_word=word
                 max_syl=syl_num
 
-        if tot_syl!=self.num_syllables:
-            self.syllable_dict[max_word][0]+=self.num_syllables-tot_syl
+        #if tot_syl!=self.num_syllables:
+        #    self.syllable_dict[max_word][0]+=1#self.num_syllables-tot_syl
 
 def main():
     """Proprocessing tests and examples"""
 
     filename='data/spenser.txt'
-    data=dataHandler(filename)
+    data=dataHandler(filename,1)
 ##    #print data.get_all_data()
 ##    #print data.get_stanza_data("couplet")
 #    data.gen_word_idx()
@@ -450,6 +454,10 @@ def main():
 
     #hyp_list=pyhyphen_setup()
 
+    check='Supposeth deny slow vex dates subtleties greedy spill part,'.split(' ')
+    for word in check:
+        print word+" ",
+        print data.parse_word(word)
 
     #print get_syllable_info("summer")
 

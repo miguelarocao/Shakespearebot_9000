@@ -25,13 +25,25 @@ class HMM:
         self.null_added = 1 #have nulls been appended?
         self.stanza=stanza #stanza type
 
+        #file saving
+        self.A_file="trained/A_"+self.stanza
+        self.O_file="trained/O_"+self.stanza
+
         print "Created HMM to be trained on "+stanza+" data."
 
     def load_data(self,filename):
+        """Loads A and O previously trained on."""
         self.myData=dataHandler(filename, self.null_added, self.stanza)
         self.myData.gen_word_idx()
         self.num_words=self.myData.get_num_words()
         self.train_data=self.myData.get_all_data()
+
+    def load_prev_trained(self):
+        """Loads A and O previously trained on."""
+        self.A=np.load(self.A_file+".npy")
+        self.O=np.load(self.O_file+".npy")
+        print "Training files succesfully loaded!"
+
 
     def train(self):
         """Trains the HMM using the loaded data"""
@@ -116,12 +128,13 @@ class HMM:
             O_n += O_num
             O_d += O_den
             sequence_no += 1
+            break
 
         print("Finished")
         self.A = self.get_division(A_n, A_d)
         self.O = self.get_division(O_n, O_d)
-        np.save("A_"+self.stanza, self.A)
-        np.save("O_"+self.stanza, self.O)
+        np.save(self.A_file, self.A)
+        np.save(self.O_file, self.O)
 
     def e_step(self,alpha,beta,train):
         """Uses forward-backward approach to calculate expectation"""
@@ -321,15 +334,18 @@ def main():
 
     qHMM=HMM("quatrain")
     qHMM.load_data(filenames)
-    qHMM.train()
+    qHMM.load_prev_trained()
+    #qHMM.train()
 
     vHMM=HMM("volta")
     vHMM.load_data(filenames)
-    vHMM.train()
+    vHMM.load_prev_trained()
+    #vHMM.train()
 
     cHMM=HMM("couplet")
     cHMM.load_data(filenames)
-    cHMM.train()
+    cHMM.load_prev_trained()
+    #cHMM.train()
 
     poem_dict={"quatrain":qHMM,"volta":vHMM,"couplet":cHMM}
 
