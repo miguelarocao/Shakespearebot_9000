@@ -33,6 +33,9 @@ class HMM:
     def train(self):
         """Trains the HMM using the loaded data"""
 
+        #set seed
+        np.random.seed(seed = 1)
+        
         #state transition matrix -> rows sum to 1
         #A is the transpose of what is presented in the notes
         #INCLUDES START AND END STATE: Appropriate transition probabilities set to 0
@@ -110,6 +113,7 @@ class HMM:
             A_d += A_den
             O_n += O_num
             O_d += O_den
+            sequence_no += 1
         
         print("Finished")
         
@@ -166,6 +170,16 @@ class HMM:
         O_num=np.zeros(np.shape(self.O))
         O_den=np.zeros(np.shape(self.O))
         
+        double_marginal_den = np.zeros((len(train)+1, 1))
+        for j in range(-1, len(train)):
+            double_marginal_den[j] = self.get_double_marginal_den(j,alpha,beta)
+        
+        triple_marginal_den = np.zeros((len(train)+1, self.num_states))
+        for j in range(-1, len(train)):
+            for state in range(self.num_states):
+                x=self.myData.get_word_idx(train[j])
+                triple_marginal_den[j, state] = self.get_triple_marginal_den(j,alpha,beta,state,x)
+                
         #update A
         for s_from in range(self.num_states-1): #from: skip end state
             #not skipping from state for verification
@@ -175,8 +189,8 @@ class HMM:
                 den_sum=0 #denominator sum
                 for j in range(len(train)):
                     x=self.myData.get_word_idx(train[j])
-                    num_sum+=self.get_triple_marginal(j,alpha,beta,s_from,s_to,x)
-                    den_sum+=self.get_double_marginal(j-1,alpha,beta,s_from,x)
+                    num_sum+=self.get_triple_marginal(j,alpha,beta,s_from,s_to,x,triple_marginal_den[j, s_to])
+                    den_sum+=self.get_double_marginal(j-1,alpha,beta,s_from,x, double_marginal_den[j-1])
                 
                 A_num[s_from,s_to] = num_sum
                 A_den[s_from,s_to] = den_sum
@@ -192,14 +206,18 @@ class HMM:
         else:
             end_iter = self.num_states
             
-        for word in range(self.num_words):
+        #for word in range(self.num_words):
+        #no need for looping over words which don't occur in the
+        #sequence - they will always have 0 numerators
+        for word_id in range(len(train)):
+            word = self.myData.get_word_idx(train[word_id])
             for state in range(1, end_iter): #skip start state
                 num_sum=0 #numerator sum
                 den_sum=0 #denominator sum
                 for j in range(len(train)):
                     #could probably make this more efficient
                     x=self.myData.get_word_idx(train[j])
-                    temp=self.get_double_marginal(j,alpha,beta,state,x)
+                    temp=self.get_double_marginal(j,alpha,beta,state,x, double_marginal_den[j])
                     if x==word:
                         num_sum+=temp
                     den_sum+=temp
@@ -211,8 +229,9 @@ class HMM:
 
         return A_num, A_den, O_num, O_den
 
-    def get_double_marginal(self,j,alpha,beta,a,x):
-        """Returns P(y_j=a,x_j). Equation (12). j >= -1."""
+    def get_double_marginal_den(self,j,alpha,beta):
+        """Returns denominator for P(y_j=a,x_j). 
+        Equation (12). j >= -1."""
 
         #calculate denominator
         den=0
@@ -223,11 +242,18 @@ class HMM:
             #to avoid division by 0
             den=1
 
+        #return denominator
+        return den
+
+    def get_double_marginal(self,j,alpha,beta,a,x,den):
+        """Returns P(y_j=a,x_j). Equation (12). j >= -1."""
+
         #return probability
         return alpha[a,j]*beta[a,j]/den
-
-    def get_triple_marginal(self,j,alpha,beta,a,b,x):
-        """Returns P(y_j=b,y_(j-1)=a,x_j). Equation (13). j >= 0."""
+        
+    def get_triple_marginal_den(self,j,alpha,beta,b,x):
+        """Returns denominator for P(y_j=b,y_(j-1)=a,x_j). 
+        Equation (13). j >= 0."""
 
         #calculate denominator
         den=0
@@ -238,6 +264,12 @@ class HMM:
         if den==0:
             #to avoid division by 0
             den=1
+        
+        #return denominator
+        return den
+
+    def get_triple_marginal(self,j,alpha,beta,a,b,x,den):
+        """Returns P(y_j=b,y_(j-1)=a,x_j). Equation (13). j >= 0."""
         
         #return probability
         return alpha[a,j-1]*self.O[x,b]*self.A[a,b]*beta[b,j]/den
