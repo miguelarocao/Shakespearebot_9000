@@ -10,7 +10,7 @@ class HMM:
 
     def __init__(self,stanza="all"):
         #number of hidden states
-        self.num_hidden=5
+        self.num_hidden=15
         self.num_states=self.num_hidden+2 #start and end state
         self.num_words=None
         self.start_idx=0 #start state index
@@ -43,8 +43,8 @@ class HMM:
         """Loads A and O previously trained on."""
         self.A=np.load(self.A_file+".npy")
         self.O=np.load(self.O_file+".npy")
-        self.myData.word_dict=np.load(self.word_file+".npy").item()
-        self.myData.idx_dict=np.load(self.idx_file+".npy").item()
+        #self.myData.word_dict=np.load(self.word_file+".npy").item()
+        #self.myData.idx_dict=np.load(self.idx_file+".npy").item()
         print "Training files succesfully loaded!"
 
     def train(self):
@@ -309,7 +309,7 @@ class HMM:
         poem=""
 
         try:
-            print "Generating poem for multi-stanza types."
+            print "Generating poem for multi-stanza types.\n"
 
             #quatrain
             poem+=hmms["quatrain"].generate_lines()
@@ -334,7 +334,7 @@ class HMM:
 
 def main():
 
-    filenames=['data/shakespeare.txt','data/spenser.txt']
+    filenames=['data/shakespeare.txt']
 
     qHMM=HMM("quatrain")
     qHMM.load_data(filenames)

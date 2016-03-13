@@ -463,7 +463,7 @@ class dataHandler:
             tagger.load(AP_MODEL_LOC)
             self.pos_tag = tagger.tag
 
-        self.tag_dict={'NN':'Noun', 'JJ':'Adjective','VB':'Verb',
+        self.tag_dict={'NN':'Noun','FW':'Noun', 'JJ':'Adjective','VB':'Verb',
           'IN':'Preposition', 'CC':'Conjunction',
           'RP':'Connector','TO':'Connector','MD':'Connector',
           'RB':'Adverb','WR':'Wh-adverb',
