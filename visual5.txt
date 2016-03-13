@@ -1,0 +1,79 @@
+unnorm top 10 words
+eloquence, praise, love's, death, best, dost, within, other, thy, shall, 
+other, strikes, self, knows, house, tender, such, end, deserved, stretched, 
+own, much, eloquence, prime, wrinkles, bereft, 'this, only, after, best, 
+back, only, save, own, glass, thine, liquid, praise, thought, death, 
+wrinkles, save, praise, own, prime, 'this, of, my, in, quite, 
+
+
+top 10 words
+bold, minutes, won, outlive, invocate, happies, climbed, sounds, unions, equipage, 
+lovers', jade, shines, breathes, cast, owes, ignorance, drops, i'll, blunt, 
+stone, whether, slave, consum'st, wife, stick'st, imprisoned, race, convertest, silvered, 
+erst, profound, threw, grave, fall, doubting, cools, tyranny, 'greeing, crow, 
+makes, slandering, constancy, sacred, compile, blamed, swart-complexioned, ear, wand'rest, widow's, 
+
+
+pos for top 10 words
+Adjective, Noun, Verb, Verb, Verb, Verb, Verb, Noun, Noun, Noun, 
+Noun, Noun, Noun, Noun, Verb, Verb, Noun, Noun, Noun, Noun, 
+Noun, Preposition, Verb, Verb, Noun, Verb, Verb, Noun, Noun, Verb, 
+Adverb, Adjective, Verb, Noun, Noun, Noun, Verb, Adjective, Verb, Noun, 
+Verb, Verb, Noun, Verb, Noun, Verb, Adjective, Noun, Adjective, Noun, 
+
+
+
+number of syllable top 10 words
+
+1, 2, 1, 2, 3, 2, 1, 1, 2, 1, 
+2, 1, 1, 1, 1, 1, 3, 1, 1, 1, 
+1, 2, 1, 3, 1, 2, 3, 1, 2, 1, 
+1, 2, 1, 1, 1, 2, 1, 3, 2, 1, 
+1, 3, 3, 2, 2, 1, 5, 1, 3, 2, 
+
+
+
+
+
+
+
+unnorm most common pos
+
+Noun 0.47, Verb 0.24, Adjective 0.16, 
+Noun 0.48, Verb 0.25, Adjective 0.17, 
+Noun 0.42, Adjective 0.24, Verb 0.17, 
+Noun 0.35, Verb 0.21, Adverb 0.17, 
+Noun 0.42, Verb 0.21, Adjective 0.17, 
+
+
+
+most common pos
+
+Noun 0.47, Verb 0.24, Adjective 0.16, 
+Noun 0.48, Verb 0.25, Adjective 0.17, 
+Adjective 0.24, Noun 0.42, Determiner 0.04, 
+Adverb 0.17, Noun 0.35, Adjective 0.17, 
+Noun 0.42, Preposition 0.07, Adjective 0.17, 
+
+
+
+
+
+
+
+unorm stress patterns
+
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [0 ], 
+
+
+stress patterns
+
+[1 0 1 0 1 ], [1 0 1 0 1 0 ], 
+[0 1 0 1 0 ], [0 1 0 1 ], 
+[0 1 0 1 0 ], [1 0 1 ], 
+[1 0 1 0 1 0 ], [1 0 1 0 ], 
+[1 ], [1 0 ], 
