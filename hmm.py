@@ -10,7 +10,7 @@ class HMM:
 
     def __init__(self,stanza="all"):
         #number of hidden states
-        self.num_hidden=4
+        self.num_hidden=5
         self.num_states=self.num_hidden+2 #start and end state
         self.num_words=None
         self.start_idx=0 #start state index
@@ -26,8 +26,8 @@ class HMM:
         self.stanza=stanza #stanza type
 
         #file saving
-        self.A_file="trained/A_"+self.stanza
-        self.O_file="trained/O_"+self.stanza
+        self.A_file="trained/A_"+self.stanza+"_"+str(self.num_hidden)
+        self.O_file="trained/O_"+self.stanza+"_"+str(self.num_hidden)
 
         print "Created HMM to be trained on "+stanza+" data."
 
