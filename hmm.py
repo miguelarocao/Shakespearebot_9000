@@ -28,7 +28,8 @@ class HMM:
         #file saving
         self.A_file="trained/A_"+self.stanza+"_"+str(self.num_hidden)
         self.O_file="trained/O_"+self.stanza+"_"+str(self.num_hidden)
-
+        self.word_file="trained/word_"+self.stanza+"_"+str(self.num_hidden)
+        self.idx_file="trained/idx_"+self.stanza+"_"+str(self.num_hidden)
         print "Created HMM to be trained on "+stanza+" data."
 
     def load_data(self,filename):
@@ -42,8 +43,9 @@ class HMM:
         """Loads A and O previously trained on."""
         self.A=np.load(self.A_file+".npy")
         self.O=np.load(self.O_file+".npy")
+        self.myData.word_dict=np.load(self.word_file+".npy").item()
+        self.myData.idx_dict=np.load(self.idx_file+".npy").item()
         print "Training files succesfully loaded!"
-
 
     def train(self):
         """Trains the HMM using the loaded data"""
@@ -85,7 +87,7 @@ class HMM:
         #For testing
         A_test = self.A
         O_test = self.O
-        
+
         A_norm_old = 0
         A_norm = LA.norm(self.A)
         O_norm_old = 0
@@ -94,7 +96,7 @@ class HMM:
         while ((abs(A_norm - A_norm_old)/A_norm > self.threshold) or \
         (abs(O_norm - O_norm_old)/O_norm > self.threshold)):
             A_norm_old = A_norm
-            O_norm_old = O_norm                
+            O_norm_old = O_norm
             sequence_no = 0
             A_n=np.zeros(np.shape(self.A))
             A_d=np.zeros(np.shape(self.A))
@@ -115,7 +117,7 @@ class HMM:
                 if sequence_no%100 == 0:
                     print "count = " + str(count) + " sequence = " + str(sequence_no)
                 sequence_no += 1
-                
+
             self.A = self.get_division(A_n, A_d)
             self.O = self.get_division(O_n, O_d)
             A_norm = LA.norm(self.A)
@@ -125,10 +127,12 @@ class HMM:
             print "count = " + str(count) + " A_norm = " + str(A_norm) + " A_norm_old = " + str(A_norm_old) + \
             " O_norm = " + str(O_norm) + " O_norm_old = " + str(O_norm_old)
             count += 1
-        
+
         print("Finished training")
         np.save(self.A_file, self.A)
         np.save(self.O_file, self.O)
+        np.save(self.word_file,self.myData.word_dict)
+        np.save(self.idx_file,self.myData.idx_dict)
 
     def e_step(self,alpha,beta,train):
         """Uses forward-backward approach to calculate expectation"""
@@ -205,7 +209,7 @@ class HMM:
                         den_sum+=self.get_double_marginal(j-1,alpha,beta,s_from,x, double_marginal_den[j-1])
 
                 A_num[s_from,s_to] = num_sum
-                if s_to == 0:                
+                if s_to == 0:
                     A_den[s_from,:] = den_sum
 
         A_num[self.end_idx, self.end_idx] = 1
@@ -240,7 +244,7 @@ class HMM:
 #                    #Avoids division by 0
 #                    den_sum=1
                 O_num[word, state] = num_sum
-                if word_id == 0:                
+                if word_id == 0:
                     O_den[:, state] = den_sum
 
         return A_num, A_den, O_num, O_den
@@ -334,18 +338,18 @@ def main():
 
     qHMM=HMM("quatrain")
     qHMM.load_data(filenames)
-    #qHMM.load_prev_trained()
-    qHMM.train()
+    qHMM.load_prev_trained()
+    #qHMM.train()
 
     vHMM=HMM("volta")
     vHMM.load_data(filenames)
-    #vHMM.load_prev_trained()
-    vHMM.train()
+    vHMM.load_prev_trained()
+    #vHMM.train()
 
     cHMM=HMM("couplet")
     cHMM.load_data(filenames)
-    #cHMM.load_prev_trained()
-    cHMM.train()
+    cHMM.load_prev_trained()
+    #cHMM.train()
 
     poem_dict={"quatrain":qHMM,"volta":vHMM,"couplet":cHMM}
 

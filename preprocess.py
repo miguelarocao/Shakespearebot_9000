@@ -5,11 +5,15 @@ import string
 import sys
 import scipy
 import json
+import urllib2
 
 ##For Language Processing
 from nltk.corpus import cmudict
 from hyphen import Hyphenator, dict_info
-import hyphen.dictools as dicttools
+import hyphen.dictools as dictools
+from nltk.tag import PerceptronTagger
+from nltk.data import find
+import nltk
 
 class dataHandler:
 
@@ -19,6 +23,7 @@ class dataHandler:
         self.poem_length=14
         self.num_syllables=10
         self.stanza=stanza
+        self.pos_tag=None
 
         #key is line number, string is stanza
         self.name=np.array(["quatrain","volta","couplet"])
@@ -26,11 +31,15 @@ class dataHandler:
         self.line_type=list(np.repeat(self.name,self.stanza_count))
         self.null_added = null_append
 
+        #Lists
         #value is index with which current index rhymes with
         self.rhyming_pairs=[2,3,0,1,6,7,4,5,10,11,8,9,13,12]
+        self.pos_double=[]    #populated in syllable_pos_setup
 
-        #dictionaries
+        #Dictionaries
+        self.tag_dict={}      #populated in syllable_pos_setup
         self.syllable_dict={} #word is key
+        self.pos_dict={}
         self.rhyming_dict={}
         self.word_dict={}
         self.idx_dict={}
@@ -44,7 +53,7 @@ class dataHandler:
             self.filenames=[self.filenames]
 
         #initialization
-        self.syllable_setup()
+        self.syllable_pos_setup()
         for filename in self.filenames:
             self.import_data(filename)
 
@@ -57,6 +66,7 @@ class dataHandler:
         rhyming_arr=[]
 
         syllable_file=filename[:-4]+"_syllables.json"
+        pos_file=filename[:-4]+"_pos.json"
 
         #check if need to generate syllable dictionary
         syl_found=False
@@ -70,6 +80,17 @@ class dataHandler:
             print "Failed to load syllable information, "+syllable_file+" not found."
             print "Importing poems and generating syllable information..."
 
+        #check if need to generate POS dictionary
+        pos_found=False
+        try:
+            temp_dict=json.load(open(pos_file))
+            pos_found=True
+            for key,value in temp_dict.iteritems():
+                self.pos_dict[str(key)]=value
+            print "Succesfully loaded POS information from: "+pos_file
+        except IOError:
+            print "Failed to load POS information, "+pos_file+" not found."
+            print "Importing poems and generating POS information..."
 
         #keeps hyphens and apostrophes
         custom_punctuation=string.punctuation.replace('-','').replace("'",'')
@@ -112,6 +133,10 @@ class dataHandler:
                         self.gen_syllable_info(line)
                         #print "Loaded line "+str(in_line_cnt)+" of 14"
 
+                    #generate POS information
+                    if not pos_found:
+                        self.gen_pos_info(line)
+
                     #reverse
                     line.reverse()
 
@@ -138,6 +163,10 @@ class dataHandler:
         if not syl_found:
             json.dump(self.syllable_dict,open(syllable_file,'w'))
             print "Wrote syllable information to "+str(syllable_file)
+
+        if not pos_found:
+            json.dump(self.pos_dict,open(pos_file,'w'))
+            print "Wrote syllable information to "+str(pos_file)
 
         return
 
@@ -283,8 +312,12 @@ class dataHandler:
                 else:
                     #not first word!
                     idx=range(np.shape(O)[0]) #number of rows
-                    modprob=self.get_sliced_distr(O[:,new_state],new_stress,self.num_syllables-syllable_count)
+                    #restrict distribution
+                    pos=self.pos_dict[line[-1].lower()]
+                    max_syl=self.num_syllables-syllable_count
+                    modprob=self.get_sliced_distr(O[:,new_state],new_stress,max_syl,pos)
                     distr=scipy.stats.rv_discrete(values=(idx,tuple(modprob)))
+                    #generate
                     word_idx=distr.rvs()
                     word=self.get_idx_word(word_idx)
 
@@ -337,10 +370,11 @@ class dataHandler:
 
         return poem
 
-    def get_sliced_distr(self,distr,end_stress,max_syl=None):
+    def get_sliced_distr(self,distr,end_stress,max_syl=None,curr_POS=None):
         """Modifies the distribution such that only words ending with the provided
         last stress syllable are next.
-        Optional input gives maximum syllable"""
+        Optional input 1 gives maximum syllable.
+        Optional input 2 denotes whether or not to restrict by POS."""
 
         #since syllable labelling isn't totally accurate
         max_syl_thresh=0
@@ -349,7 +383,8 @@ class dataHandler:
         for i in range(len(distr)):
             good=False
             try:
-                syl_num,syl_stress=self.syllable_dict[self.get_idx_word(i)]
+                word=self.get_idx_word(i)
+                syl_num,syl_stress=self.syllable_dict[word]
                 #check intonation
                 for stress in syl_stress:
                     if stress[-1]==end_stress:
@@ -359,6 +394,10 @@ class dataHandler:
                 #check count if necessary
                 if max_syl:
                     if syl_num>(max_syl+max_syl_thresh):
+                        good=False
+                #check POS if necessary
+                if curr_POS:
+                    if self.pos_dict[word]==curr_POS and (curr_POS not in self.pos_double):
                         good=False
             except KeyError:
                 #happens with NULL token
@@ -373,16 +412,36 @@ class dataHandler:
         return distr
 
 
-    def syllable_setup(self):
-        """Sets up pyhyphen"""
+    def syllable_pos_setup(self):
+        """Sets up syllables and POS tagging"""
         en_list=['en_CA', 'en_PH', 'en_NA', 'en_NZ', 'en_JM', 'en_BS', 'en_US',
                     'en_IE', 'en_MW', 'en_IN', 'en_BZ', 'en_TT', 'en_ZA', 'en_AU',
                     'en_GH', 'en_ZW', 'en_GB']
 
         for lang in en_list:
-            if not dicttools.is_installed(lang): dicttools.install(lang)
+            if not dictools.is_installed(lang): dictools.install(lang)
 
         self.cmu_dict = cmudict.dict()
+
+        #sets up POS
+        try:
+            nltk.pos_tag(['test'])
+            self.pos_tag=nltk.pos_tag
+        except urllib2.URLError:
+            PICKLE = "averaged_perceptron_tagger.pickle"
+            AP_MODEL_LOC = 'file:'+str(find('taggers/averaged_perceptron_tagger/'+PICKLE))
+            tagger = PerceptronTagger(load=False)
+            tagger.load(AP_MODEL_LOC)
+            self.pos_tag = tagger.tag
+
+        self.tag_dict={'NN':'Noun', 'JJ':'Adjective','RB':'Adverb','VB':'Verb',
+          'IN':'Preposition','PR':'Pronoun','CC':'Conjunction',
+          'RP':'Particle','WR':'Wh-adverb','DT':'Determiner',
+          'TO':'To','MD':'Modal Aux','CD':'Cardinal', 'PD':'Predeterminer',
+          'WD':'Wh-determiner', 'WP':'Wh-pronoun','EX':'Existential there'}
+
+        #POS which are allowed to happen twice in a row
+        self.pos_double=['Noun','Adjective']
 
         return
 
@@ -440,10 +499,26 @@ class dataHandler:
         #if tot_syl!=self.num_syllables:
         #    self.syllable_dict[max_word][0]+=1#self.num_syllables-tot_syl
 
+    def gen_pos_info(self,sentence):
+        """Generates parts of speech info based on input sequence.
+        Populates pos_dict with this information"""
+
+        #generate a clean list of words
+        clean_words=[word.translate(None,string.punctuation).lower() for word in sentence]
+        tags=self.pos_tag(clean_words)
+
+        for i in range(len(sentence)):
+            tag=tags[i][1][:2]
+            word=sentence[i]
+            try:
+                self.pos_dict[word]=self.tag_dict[tag]
+            except KeyError:
+                print " ".join([word,tag])
+
 def main():
     """Proprocessing tests and examples"""
 
-    filename='data/spenser.txt'
+    filename='data/shakespeare.txt'
     data=dataHandler(filename,1)
 ##    #print data.get_all_data()
 ##    #print data.get_stanza_data("couplet")
@@ -458,10 +533,8 @@ def main():
 
     #hyp_list=pyhyphen_setup()
 
-    check="Seen leads admiring up winter's cruelty".split(' ')
-    for word in check:
-        print word+" ",
-        print data.parse_word(word)
+    check="Look at me".split(' ')
+    data.gen_pos_info(check)
 
     #data.gen_syllable_info(check)
 
