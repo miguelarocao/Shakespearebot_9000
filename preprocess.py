@@ -441,7 +441,7 @@ class dataHandler:
           'WD':'Wh-determiner', 'WP':'Wh-pronoun','EX':'Existential there'}
 
         #POS which are allowed to happen twice in a row
-        self.pos_double=['Noun','Adjective']
+        self.pos_double=[]#['Noun','Adjective']
 
         return
 
