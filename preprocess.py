@@ -293,7 +293,7 @@ class dataHandler:
                 #get new state at random
                 idx=range(len(A[curr_state]))
                 distr=scipy.stats.rv_discrete(values=(idx,tuple(A[curr_state,:])))
-                new_state=distr.rvs()
+                curr_state=distr.rvs()
 
                 if not line:
                     #first word
@@ -307,7 +307,7 @@ class dataHandler:
                     except IndexError:
                         #previous rhyming line doesn't exist!
                         #select first word from rhyming dictionary at random
-                        word=self.get_state_rhyme(O[:,new_state])
+                        word=self.get_state_rhyme(O[:,curr_state])
 
                 else:
                     #not first word!
@@ -315,7 +315,7 @@ class dataHandler:
                     #restrict distribution
                     pos=self.pos_dict[line[-1].lower()]
                     max_syl=self.num_syllables-syllable_count
-                    modprob=self.get_sliced_distr(O[:,new_state],new_stress,max_syl,pos)
+                    modprob=self.get_sliced_distr(O[:,curr_state],new_stress,max_syl,pos)
                     distr=scipy.stats.rv_discrete(values=(idx,tuple(modprob)))
                     #generate
                     word_idx=distr.rvs()
@@ -343,11 +343,96 @@ class dataHandler:
                 line.append(word)
                 word_count+=1
                 #check end conditions: end state or syllable max reached
-                if new_state==(len(A[0,:])-1) or syllable_count>=self.num_syllables:
+                if curr_state==(len(A[0,:])-1) or syllable_count>=self.num_syllables:
                     #print "Line "+str(i)+" has "+str(syllable_count)+" syllables."
                     #print ""
                     break
 
+            #Remove NULL
+            if curr_state==(len(A[0,:])-1):
+                line = line[:-1]
+                
+            #reverse line
+            line.reverse()
+
+            #add to poem
+            poem_arr.append(line)
+
+        #Convert to text
+        poem=""
+        for line in poem_arr:
+            line[0]=string.capwords(line[0])
+            line=" ".join(line)
+            if np.random.random()<special_prob:
+                punctuation=special_punc[np.random.randint(len(special_punc))]
+            else:
+                punctuation=','
+            poem+=(line+punctuation+"\n")
+
+        if self.stanza in ["all","couplet"]:
+            poem=poem[:-2]
+            poem+='.'
+
+        return poem
+
+    def generate_naive_lines(self,A,O):
+        """Generates a poem based on the transition matrix A and the
+        observation matrix O.
+        Output is a string."""
+
+        #word_max=10 #maximum number of words per line
+        special_prob=0.15 #probability that we add special punctuation
+        special_punc=['!','?',';','.']
+        special_words=['i']
+
+        poem_arr=[] #list of lists
+        for i in range(self.poem_length):
+            curr_state=0 #start state
+            line=[]
+            word_count=0
+            #new_stress=1
+            if self.stanza!="all" and self.line_type[i]!=self.stanza:
+                continue
+            while True:
+                #get new state at random
+                idx=range(len(A[curr_state]))
+                distr=scipy.stats.rv_discrete(values=(idx,tuple(A[curr_state,:])))
+                curr_state=distr.rvs()
+
+                if not line:
+                    #first word
+                    try:
+                        relative_rhyme=(self.rhyming_pairs[i]-i)+len(poem_arr)
+                        #print relative_rhyme
+                        word=self.get_rhyme(poem_arr[relative_rhyme][-1])
+                        if word:
+                            gen_word=False
+                        #print poem_arr[self.rhyming_pairs[i]][-1]+" "+str(word)
+                    except IndexError:
+                        #previous rhyming line doesn't exist!
+                        #select first word from rhyming dictionary at random
+                        word=self.get_state_rhyme(O[:,curr_state])
+
+                else:
+                    #not first word!
+                    idx=range(np.shape(O)[0]) #number of rows
+                    modprob = O[:,curr_state]
+                    distr=scipy.stats.rv_discrete(values=(idx,tuple(modprob)))
+                    #generate
+                    word_idx=distr.rvs()
+                    word=self.get_idx_word(word_idx)
+
+                #check if special word
+                if word in special_words:
+                    word=word.capitalize()
+
+                line.append(word)
+                word_count+=1
+                #check end conditions: end state 
+                if curr_state==(len(A[0,:])-1): 
+                    break
+
+            line = line[:-1]
             #reverse line
             line.reverse()
 
