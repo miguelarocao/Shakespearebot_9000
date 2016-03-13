@@ -341,7 +341,7 @@ class dataHandler:
                 if word in special_words:
                     word=word.capitalize()
 
-                print word+" ("+self.pos_dict[word.lower()]+") ",
+                #print word+" ("+self.pos_dict[word.lower()]+") ",
                 line.append(word)
                 word_count+=1
                 #check end conditions: end state or syllable max reached
@@ -516,7 +516,7 @@ class dataHandler:
                     pos=self.pos_dict[word]
                     if pos==curr_POS and (curr_POS not in self.pos_double):
                         good=False
-                    if pos in self.pos_lead and curr_POS!=self.pos_lead[pos]:
+                    if pos in self.pos_lead and (curr_POS not in self.pos_lead[pos]):
                         good=False
                     if curr_POS in self.pos_restrict_lead and pos==self.pos_restrict_lead[curr_POS]:
                         good=False
@@ -575,11 +575,12 @@ class dataHandler:
 
         #POS which can only occur sequentially
         #i.e. an Adverb must occur in fron of a verb
-        self.pos_lead={'Adverb':'Verb','Pronoun':'Noun'}
+        self.pos_lead={'Adverb':['Verb'],'Pronoun':['Noun'],'Adjective':['Noun'],
+                       'Preposition':['Noun','Pronoun']}
 
         #POS which cannot occur sequentially
         #i.e. a preposition cannot come before a verb
-        self.pos_restrict_lead={'Preposition':'Verb'}
+        self.pos_restrict_lead={'Preposition':'Verb',}
 
         return
 
@@ -659,7 +660,7 @@ class dataHandler:
 def main():
     """Proprocessing tests and examples"""
 
-    filename='data/shakespeare.txt'
+    filename='data/best_sonnets.txt'
     data=dataHandler(filename,1)
 ##    #print data.get_all_data()
 ##    #print data.get_stanza_data("couplet")

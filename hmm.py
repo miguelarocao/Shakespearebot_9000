@@ -8,9 +8,9 @@ from numpy import linalg as LA
 class HMM:
     #HMM class
 
-    def __init__(self,stanza="all"):
+    def __init__(self,stanza="all",multi=""):
         #number of hidden states
-        self.num_hidden=5
+        self.num_hidden=30
         self.num_states=self.num_hidden+2 #start and end state
         self.num_words=None
         self.start_idx=0 #start state index
@@ -26,10 +26,10 @@ class HMM:
         self.stanza=stanza #stanza type
 
         #file saving
-        self.A_file="trained/A_"+self.stanza+"_"+str(self.num_hidden)
-        self.O_file="trained/O_"+self.stanza+"_"+str(self.num_hidden)
-        self.word_file="trained/word_"+self.stanza+"_"+str(self.num_hidden)
-        self.idx_file="trained/idx_"+self.stanza+"_"+str(self.num_hidden)
+        self.A_file="trained/A_"+self.stanza+"_"+str(self.num_hidden)+multi
+        self.O_file="trained/O_"+self.stanza+"_"+str(self.num_hidden)+multi
+        self.word_file="trained/word_"+self.stanza+"_"+str(self.num_hidden)+multi
+        self.idx_file="trained/idx_"+self.stanza+"_"+str(self.num_hidden)+multi
         print "Created HMM to be trained on "+stanza+" data."
 
     def load_data(self,filename):
@@ -341,7 +341,7 @@ class HMM:
         poem=""
 
         try:
-            print "Generating poem for multi-stanza types.\n"
+            print "Generating naive poem for multi-stanza types.\n"
 
             #quatrain
             poem+=hmms["quatrain"].generate_naive_lines()
@@ -363,22 +363,22 @@ class HMM:
             f.close()
         else:
             print poem
-            
+
 def main():
 
-    filenames=['data/shakespeare.txt']
+    filenames=['data/shakespeare.txt','data/spenser.txt','data/best_sonnets.txt']
 
-    qHMM=HMM("quatrain")
+    qHMM=HMM("quatrain","_"+str(len(filenames)))
     qHMM.load_data(filenames)
     qHMM.load_prev_trained()
     #qHMM.train()
 
-    vHMM=HMM("volta")
+    vHMM=HMM("volta","_"+str(len(filenames)))
     vHMM.load_data(filenames)
     vHMM.load_prev_trained()
     #vHMM.train()
 
-    cHMM=HMM("couplet")
+    cHMM=HMM("couplet","_"+str(len(filenames)))
     cHMM.load_data(filenames)
     cHMM.load_prev_trained()
     #cHMM.train()
