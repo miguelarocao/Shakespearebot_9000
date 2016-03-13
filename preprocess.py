@@ -307,7 +307,7 @@ class dataHandler:
                     except IndexError:
                         #previous rhyming line doesn't exist!
                         #select first word from rhyming dictionary at random
-                        word=np.random.choice(self.rhyming_dict.keys())
+                        word=self.get_state_rhyme(O[:,new_state])
 
                 else:
                     #not first word!
@@ -339,12 +339,13 @@ class dataHandler:
                 if word in special_words:
                     word=word.capitalize()
 
-                #print word+" "+str(syl_num)+" ",
+                print word+" ("+self.pos_dict[word]+") ",
                 line.append(word)
                 word_count+=1
                 #check end conditions: end state or syllable max reached
                 if new_state==(len(A[0,:])-1) or syllable_count>=self.num_syllables:
-                    print "Line "+str(i)+" has "+str(syllable_count)+" syllables."
+                    #print "Line "+str(i)+" has "+str(syllable_count)+" syllables."
+                    print ""
                     break
 
             #reverse line
@@ -370,6 +371,32 @@ class dataHandler:
 
         return poem
 
+    def get_state_rhyme(self,distr,rhyme=None):
+        """Returns a randomly generated word with a rhyme sample from the
+        provided state distribution."""
+
+        distr=list(distr)
+
+        for i in range(len(distr)):
+            word=self.get_idx_word(i)
+
+            try:
+                self.rhyming_dict[word]
+            except:
+                #not in rhyming dict
+                distr[i]=0
+
+        #normalize
+        distr=distr/sum(distr)
+
+        #sample
+        idx=range(len(distr)) #number of rows
+        distr=scipy.stats.rv_discrete(values=(idx,tuple(distr)))
+        #generate
+        word_idx=distr.rvs()
+
+        return self.get_idx_word(word_idx)
+
     def get_sliced_distr(self,distr,end_stress,max_syl=None,curr_POS=None):
         """Modifies the distribution such that only words ending with the provided
         last stress syllable are next.
@@ -378,6 +405,8 @@ class dataHandler:
 
         #since syllable labelling isn't totally accurate
         max_syl_thresh=0
+
+        distr=list(distr)
 
         #set probabilities to 0
         for i in range(len(distr)):
@@ -434,11 +463,21 @@ class dataHandler:
             tagger.load(AP_MODEL_LOC)
             self.pos_tag = tagger.tag
 
-        self.tag_dict={'NN':'Noun', 'JJ':'Adjective','RB':'Adverb','VB':'Verb',
-          'IN':'Preposition','PR':'Pronoun','CC':'Conjunction',
-          'RP':'Particle','WR':'Wh-adverb','DT':'Determiner',
-          'TO':'To','MD':'Modal Aux','CD':'Cardinal', 'PD':'Predeterminer',
-          'WD':'Wh-determiner', 'WP':'Wh-pronoun','EX':'Existential there'}
+        self.tag_dict={'NN':'Noun', 'JJ':'Adjective','VB':'Verb',
+          'IN':'Preposition', 'CC':'Conjunction',
+          'RP':'Connector','TO':'Connector','MD':'Connector',
+          'RB':'Adverb','WR':'Wh-adverb',
+          'DT':'Determiner','WD':'Determiner','PD':'Determiner',
+          'CD':'Cardinal',
+          'EX':'Existential there',
+          'PR':'Pronoun', 'WP':'Pronoun'}
+
+
+##        self.tag_dict={'NN':'Noun', 'JJ':'Adjective','RB':'Adverb','VB':'Verb',
+##          'IN':'Preposition','PR':'Pronoun','CC':'Conjunction',
+##          'RP':'Particle','WR':'Wh-adverb','DT':'Determiner',
+##          'TO':'To','MD':'Modal Aux','CD':'Cardinal', 'PD':'Predeterminer',
+##          'WD':'Wh-determiner', 'WP':'Wh-pronoun','EX':'Existential there'}
 
         #POS which are allowed to happen twice in a row
         self.pos_double=[]#['Noun','Adjective']
