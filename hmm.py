@@ -82,57 +82,51 @@ class HMM:
         #end is guaranteed to stay in end state
         self.A[self.end_idx,self.end_idx]=1
 
-        #For re-use
-        A_start = np.copy(self.A)
-        O_start = np.copy(self.O)
-
         #For testing
         A_test = self.A
         O_test = self.O
+        
+        A_norm_old = 0
+        A_norm = LA.norm(self.A)
+        O_norm_old = 0
+        O_norm = LA.norm(self.O)
+        count = 0
+        while ((abs(A_norm - A_norm_old)/A_norm > self.threshold) or \
+        (abs(O_norm - O_norm_old)/O_norm > self.threshold)):
+            A_norm_old = A_norm
+            O_norm_old = O_norm                
+            sequence_no = 0
+            A_n=np.zeros(np.shape(self.A))
+            A_d=np.zeros(np.shape(self.A))
+            O_n=np.zeros(np.shape(self.O))
+            O_d=np.zeros(np.shape(self.O))
 
-        A_n=np.zeros(np.shape(self.A))
-        A_d=np.zeros(np.shape(self.A))
-        O_n=np.zeros(np.shape(self.O))
-        O_d=np.zeros(np.shape(self.O))
-
-        sequence_no = 0
-        for training_seq in self.train_data:
-            self.A = np.copy(A_start)
-            self.O = np.copy(O_start)
-            A_norm_old = 0
-            A_norm = LA.norm(self.A)
-            O_norm_old = 0
-            O_norm = LA.norm(self.O)
-            count = 0
-            while ((abs(A_norm - A_norm_old)/A_norm > self.threshold) or \
-            (abs(O_norm - O_norm_old)/O_norm > self.threshold)) and count < 20:
-                A_norm_old = A_norm
-                O_norm_old = O_norm
+            for training_seq in self.train_data:
                 alpha=np.zeros((self.num_states,len(training_seq)+1))
                 beta=np.zeros((self.num_states,len(training_seq)+1))
                 #expectation step
                 self.e_step(alpha,beta,training_seq)
                 #maximization step
                 A_num, A_den, O_num, O_den = self.m_step(alpha,beta,training_seq)
-                self.A = self.get_division(A_num, A_den)
-                self.O = self.get_division(O_num, O_den)
-                A_norm = LA.norm(self.A)
-                O_norm = LA.norm(self.O)
-                A_test = self.A
-                O_test = self.O
-                count += 1
-            print "sequence = " + str(sequence_no) + " count = " + str(count)
-            #converged
-            A_n += A_num
-            A_d += A_den
-            O_n += O_num
-            O_d += O_den
-            sequence_no += 1
-            break
-
-        print("Finished")
-        self.A = self.get_division(A_n, A_d)
-        self.O = self.get_division(O_n, O_d)
+                A_n += A_num
+                A_d += A_den
+                O_n += O_num
+                O_d += O_den
+                if sequence_no%100 == 0:
+                    print "count = " + str(count) + " sequence = " + str(sequence_no)
+                sequence_no += 1
+                
+            self.A = self.get_division(A_n, A_d)
+            self.O = self.get_division(O_n, O_d)
+            A_norm = LA.norm(self.A)
+            O_norm = LA.norm(self.O)
+            A_test = self.A
+            O_test = self.O
+            print "count = " + str(count) + " A_norm = " + str(A_norm) + " A_norm_old = " + str(A_norm_old) + \
+            " O_norm = " + str(O_norm) + " O_norm_old = " + str(O_norm_old)
+            count += 1
+        
+        print("Finished training")
         np.save(self.A_file, self.A)
         np.save(self.O_file, self.O)
 
@@ -191,11 +185,10 @@ class HMM:
         for j in range(-1, len(train)):
             double_marginal_den[j] = self.get_double_marginal_den(j,alpha,beta)
 
-        triple_marginal_den = np.zeros((len(train)+1, self.num_states))
+        triple_marginal_den = np.zeros((len(train)+1, 1))
         for j in range(-1, len(train)):
-            for state in range(self.num_states):
                 x=self.myData.get_word_idx(train[j])
-                triple_marginal_den[j, state] = self.get_triple_marginal_den(j,alpha,beta,state,x)
+                triple_marginal_den[j] = self.get_triple_marginal_den(j,alpha,beta,x)
 
         #update A
         for s_from in range(self.num_states-1): #from: skip end state
@@ -203,23 +196,26 @@ class HMM:
             for s_to in range(self.num_states):
                 #compute transition for each state
                 num_sum=0 #numerator sum
-                den_sum=0 #denominator sum
+                if s_to == 0:
+                    den_sum=0 #denominator sum
                 for j in range(len(train)):
                     x=self.myData.get_word_idx(train[j])
-                    num_sum+=self.get_triple_marginal(j,alpha,beta,s_from,s_to,x,triple_marginal_den[j, s_to])
-                    den_sum+=self.get_double_marginal(j-1,alpha,beta,s_from,x, double_marginal_den[j-1])
+                    num_sum+=self.get_triple_marginal(j,alpha,beta,s_from,s_to,x,triple_marginal_den[j])
+                    if s_to == 0:
+                        den_sum+=self.get_double_marginal(j-1,alpha,beta,s_from,x, double_marginal_den[j-1])
 
                 A_num[s_from,s_to] = num_sum
-                A_den[s_from,s_to] = den_sum
+                if s_to == 0:                
+                    A_den[s_from,:] = den_sum
 
         A_num[self.end_idx, self.end_idx] = 1
-        A_den[self.end_idx, self.end_idx] = 1
+        A_den[self.end_idx, :] = 1
 
         #update O
         if self.null_added == 1:
             end_iter = self.num_states - 1
             O_num[self.myData.get_word_idx("NULL"), self.end_idx] = 1
-            O_den[self.myData.get_word_idx("NULL"), self.end_idx] = 1
+            O_den[:, self.end_idx] = 1
         else:
             end_iter = self.num_states
 
@@ -230,19 +226,22 @@ class HMM:
             word = self.myData.get_word_idx(train[word_id])
             for state in range(1, end_iter): #skip start state
                 num_sum=0 #numerator sum
-                den_sum=0 #denominator sum
+                if word_id == 0:
+                    den_sum=0 #denominator sum
                 for j in range(len(train)):
                     #could probably make this more efficient
                     x=self.myData.get_word_idx(train[j])
                     temp=self.get_double_marginal(j,alpha,beta,state,x, double_marginal_den[j])
                     if x==word:
                         num_sum+=temp
-                    den_sum+=temp
+                    if word_id == 0:
+                        den_sum+=temp
 #                if den_sum==0:
 #                    #Avoids division by 0
 #                    den_sum=1
                 O_num[word, state] = num_sum
-                O_den[word, state] = den_sum
+                if word_id == 0:                
+                    O_den[:, state] = den_sum
 
         return A_num, A_den, O_num, O_den
 
@@ -268,7 +267,7 @@ class HMM:
         #return probability
         return alpha[a,j]*beta[a,j]/den
 
-    def get_triple_marginal_den(self,j,alpha,beta,b,x):
+    def get_triple_marginal_den(self,j,alpha,beta,x):
         """Returns denominator for P(y_j=b,y_(j-1)=a,x_j).
         Equation (13). j >= 0."""
 
@@ -276,7 +275,7 @@ class HMM:
         den=0
         for s1 in range(self.num_states): #from
             for s2 in range(self.num_states): #to
-                den+=alpha[s1,j-1]*self.O[x,b]*self.A[s1,s2]*beta[s2,j]
+                den+=alpha[s1,j-1]*self.O[x,s2]*self.A[s1,s2]*beta[s2,j]
 
         if den==0:
             #to avoid division by 0
@@ -292,8 +291,9 @@ class HMM:
         return alpha[a,j-1]*self.O[x,b]*self.A[a,b]*beta[b,j]/den
 
     def get_division(self, M_num, M_den):
-        Ones = np.ones(np.shape(M_num))
-        return np.copy(M_num/(np.maximum(M_den, Ones)))
+        res = np.copy(M_num/M_den)
+        res = np.nan_to_num(res)
+        return res
 
     def generate_lines(self):
         return self.myData.generate_lines(self.A,self.O)
@@ -334,28 +334,28 @@ def main():
 
     qHMM=HMM("quatrain")
     qHMM.load_data(filenames)
-    qHMM.load_prev_trained()
-    #qHMM.train()
+    #qHMM.load_prev_trained()
+    qHMM.train()
 
     vHMM=HMM("volta")
     vHMM.load_data(filenames)
-    vHMM.load_prev_trained()
-    #vHMM.train()
+    #vHMM.load_prev_trained()
+    vHMM.train()
 
     cHMM=HMM("couplet")
     cHMM.load_data(filenames)
-    cHMM.load_prev_trained()
-    #cHMM.train()
+    #cHMM.load_prev_trained()
+    cHMM.train()
 
     poem_dict={"quatrain":qHMM,"volta":vHMM,"couplet":cHMM}
 
     HMM.generate_poem(poem_dict)
 
-##    myHMM=HMM()
-##    myHMM.load_data(filenames)
-##    myHMM.train()
-##
-##    HMM.generate_poem(myHMM)
+#    myHMM=HMM()
+#    myHMM.load_data(filenames)
+#    myHMM.train()
+#
+#    HMM.generate_poem(myHMM)
 
     pass
 
