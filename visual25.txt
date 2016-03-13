@@ -1,0 +1,182 @@
+top 10 words
+stone, controlling, tongue-tied, authority, spoil, forbid, hold, foot, lie, hid, 
+
+windows, saved, remembered, elements, present-absent, invent, beseem, horses, groan, air, 
+
+defects, hardest, acquaintance, there's, all-eating, wakened, touches, none, costs, sparkling, 
+
+stone, creation, add, spent, perforce, dart, fools, forgetfulness, four, abuse, 
+
+certain, monument, simplicity, said, ambush, died, nature, soundless, tall, alone, 
+
+deceased, workings, thrust, work's, destroys, greatest, print, where-through, unbless, orphans, 
+
+commanded, unfolding, afar, suff'ring, virtue, winds, enmity, dimmed, wear, fierce, 
+
+strive, sell, youth's, leads, habitation, up-locked, bold, perceiv'st, receiving, prevailed, 
+
+hate', share, rider, frailties, marvel, rising, mind, abundant, care, drudge, 
+
+afloat, knit, rage, three, divining, amazeth, shifting, provoke, burn, afford, 
+
+heart's, slave, extremity, true, dreams, pricked, engraft, prognosticate, writ, forbidden, 
+
+convertest, swart-complexioned, heavenly, unfair, moon, watchman, full, travel's, silent, well-contented, 
+
+advance, ages, image, theirs, stirred, pays, truest, 'greeing, embassy, celestial, 
+
+deny, advised, flame, presume, pity, upon, strong, slandering, call, poets, 
+
+behold, triumphant, drawn, fingers, intend, believed, office, grows, evil, black, 
+
+foot, subject, tribes, unbred, turns, for, appetite, mouths, willing, wink, 
+
+banquet, spread, admiring, self-love, weighs, our, wondrous, blunting, strains, been, 
+
+leisure, ceremony, greet, convert, seem, replete, purging, oblation, distance, lived, 
+
+canst, woos, lark, decrepit, active, stand, steals, divided, painted, acquainted, 
+
+victor, small, delivered, born, gazed, find, unions, seest, amiss, dignity, 
+
+april's, plants, work, largess, curious, written, kill, trifle, worship, mountain, 
+
+dully, discourse, life, refusest, robbery, possession, fading, habit, dare, faster, 
+
+nursed, waking, luck, dearer, i'll, girded, entitled, no, abused, drops, 
+
+what's, skill, speechless, minutes, hues, lacked, winged, hush, unthrifty, tomb, 
+
+home, neck, dearths, distills, captain, hear, remedy, wilful, becoming, vex, 
+
+settled, like, knowledge, suns, perspective, play, must, consent, consider, concord, 
+
+that, stone, hid, tongue-tied, authority, spoil, forbid, hold, foot, lie, 
+
+pos for top 10 words
+Noun, Verb, Adjective, Noun, Noun, Verb, Verb, Noun, Noun, Noun, 
+Noun, Verb, Verb, Noun, Noun, Noun, Preposition, Noun, Verb, Noun, 
+Noun, Adjective, Noun, Verb, Adjective, Adjective, Noun, Noun, Noun, Verb, 
+Noun, Noun, Verb, Noun, Noun, Verb, Noun, Noun, Cardinal, Noun, 
+Adjective, Noun, Noun, Verb, Noun, Verb, Noun, Adjective, Adjective, Adverb, 
+Verb, Noun, Verb, Verb, Verb, Adjective, Noun, Preposition, Noun, Noun, 
+Verb, Verb, Noun, Verb, Noun, Noun, Noun, Verb, Verb, Adjective, 
+Adjective, Verb, Noun, Verb, Noun, Adjective, Adjective, Noun, Verb, Verb, 
+Verb, Noun, Noun, Noun, Noun, Verb, Noun, Adjective, Noun, Noun, 
+Noun, Verb, Noun, Cardinal, Adjective, Noun, Verb, Verb, Noun, Verb, 
+Noun, Verb, Noun, Adjective, Noun, Verb, Verb, Verb, Verb, Adjective, 
+Noun, Adjective, Adverb, Adjective, Noun, Noun, Adjective, Noun, Adjective, Adjective, 
+Noun, Noun, Noun, Noun, Verb, Verb, Noun, Verb, Noun, Adjective, 
+Noun, Adjective, Noun, Noun, Noun, Preposition, Adjective, Verb, Verb, Noun, 
+Verb, Noun, Noun, Noun, Verb, Verb, Noun, Verb, Noun, Adjective, 
+Noun, Noun, Noun, Verb, Verb, Preposition, Noun, Noun, Adjective, Verb, 
+Noun, Verb, Verb, Noun, Noun, Pronoun, Adjective, Verb, Noun, Verb, 
+Noun, Noun, Verb, Noun, Verb, Adjective, Noun, Noun, Noun, Verb, 
+Noun, Verb, Noun, Noun, Adjective, Verb, Verb, Verb, Verb, Verb, 
+Noun, Adjective, Verb, Verb, Verb, Verb, Noun, Verb, Noun, Noun, 
+Noun, Noun, Noun, Noun, Adjective, Verb, Verb, Noun, Noun, Noun, 
+Adverb, Noun, Noun, Noun, Noun, Noun, Verb, Noun, Verb, Adverb, 
+Verb, Verb, Noun, Verb, Noun, Verb, Verb, Determiner, Adjective, Noun, 
+Noun, Noun, Noun, Noun, Noun, Verb, Verb, Verb, Adjective, Noun, 
+Noun, Adverb, Noun, Verb, Noun, Noun, Noun, Adjective, Verb, Verb, 
+Adjective, Preposition, Noun, Noun, Verb, Verb, Connector, Noun, Verb, Noun, 
+Determiner, Noun, Noun, Adjective, Noun, Noun, Verb, Verb, Noun, Noun, 
+
+
+number of syllable top 10 words
+
+1, 3, 3, 4, 1, 2, 1, 1, 1, 1, 
+2, 1, 3, 3, 4, 2, 2, 2, 1, 1, 
+2, 2, 3, 1, 4, 1, 2, 1, 1, 2, 
+1, 3, 1, 1, 2, 1, 1, 4, 1, 2, 
+2, 3, 4, 1, 2, 1, 2, 2, 1, 2, 
+2, 2, 1, 1, 2, 2, 1, 3, 2, 2, 
+3, 3, 2, 3, 2, 1, 3, 1, 1, 1, 
+1, 1, 1, 1, 4, 3, 1, 3, 3, 2, 
+1, 1, 2, 2, 2, 2, 1, 3, 1, 1, 
+2, 1, 1, 1, 3, 2, 2, 2, 1, 2, 
+1, 1, 4, 1, 1, 1, 2, 4, 1, 3, 
+2, 5, 3, 2, 1, 2, 1, 1, 2, 5, 
+2, 2, 2, 1, 1, 1, 2, 2, 3, 3, 
+2, 2, 1, 2, 2, 2, 1, 3, 1, 2, 
+2, 3, 1, 2, 2, 2, 2, 1, 2, 1, 
+1, 2, 1, 2, 1, 1, 3, 1, 2, 1, 
+2, 1, 3, 3, 1, 2, 2, 2, 1, 1, 
+2, 4, 1, 2, 1, 2, 2, 3, 2, 1, 
+1, 1, 1, 3, 2, 1, 1, 3, 2, 3, 
+2, 1, 3, 1, 1, 1, 2, 1, 2, 3, 
+2, 1, 1, 2, 3, 2, 1, 2, 2, 2, 
+1, 2, 1, 2, 3, 3, 2, 2, 1, 2, 
+1, 2, 1, 2, 1, 1, 3, 1, 2, 1, 
+1, 1, 2, 2, 1, 1, 1, 1, 2, 1, 
+1, 1, 1, 2, 2, 1, 3, 2, 3, 1, 
+2, 1, 2, 1, 3, 1, 1, 2, 3, 2, 
+1, 1, 1, 3, 4, 1, 2, 1, 1, 1, 
+
+
+
+
+
+most common pos
+
+Pronoun, Conjunction, Cardinal, 
+Pronoun, Preposition, Determiner, 
+Preposition, Determiner, Adjective, 
+Cardinal, Pronoun, Preposition, 
+Cardinal, Pronoun, Adjective, 
+Wh-adverb, Connector, Adverb, 
+Cardinal, Conjunction, Verb, 
+Determiner, Verb, Adjective, 
+Conjunction, Adverb, Connector, 
+Cardinal, Adverb, Conjunction, 
+Adverb, Connector, Noun, 
+Conjunction, Wh-adverb, Pronoun, 
+Pronoun, Conjunction, Verb, 
+Preposition, Adjective, Noun, 
+Pronoun, Determiner, Adjective, 
+Wh-adverb, Preposition, Conjunction, 
+Pronoun, Preposition, Adjective, 
+Determiner, Pronoun, Adverb, 
+Preposition, Determiner, Verb, 
+Wh-adverb, Connector, Adverb, 
+Determiner, Pronoun, Cardinal, 
+Wh-adverb, Determiner, Connector, 
+Adverb, Connector, Adjective, 
+Preposition, Verb, Noun, 
+Existential there, Connector, Wh-adverb, 
+Connector, Determiner, Preposition, 
+Determiner, Pronoun, Conjunction, 
+
+
+
+
+
+stress patterns
+
+
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 0 ], [1 ], 
+[1 ], [1 0 ], 
+[1 ], [0 1 ], 
+[1 ], [0 1 ], 
+[1 0 ], [1 ], 
+[1 0 ], [1 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 0 ], [1 ], 
+[1 0 ], [1 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+[1 ], [1 0 ], 
+
