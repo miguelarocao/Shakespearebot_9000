@@ -10,7 +10,7 @@ class HMM:
 
     def __init__(self,stanza="all"):
         #number of hidden states
-        self.num_hidden=15
+        self.num_hidden=5
         self.num_states=self.num_hidden+2 #start and end state
         self.num_words=None
         self.start_idx=0 #start state index
@@ -302,6 +302,8 @@ class HMM:
     def generate_lines(self):
         return self.myData.generate_lines(self.A,self.O)
 
+    def generate_naive_lines(self):
+        return self.myData.generate_naive_lines(self.A,self.O)
     @staticmethod
     def generate_poem(hmms,filename=None):
         """Generates poem based on hmms. Input can either be a single hmm or a
@@ -332,6 +334,36 @@ class HMM:
         else:
             print poem
 
+    @staticmethod
+    def generate_naive_poem(hmms,filename=None):
+        """Generates poem based on hmms. Input can either be a single hmm or a
+        dictionary of hmms with keys 'volta', 'quatrain' and 'couplet'."""
+        poem=""
+
+        try:
+            print "Generating poem for multi-stanza types.\n"
+
+            #quatrain
+            poem+=hmms["quatrain"].generate_naive_lines()
+            #volta
+            poem+=hmms["volta"].generate_naive_lines()
+            #couplet
+            poem+=hmms["couplet"].generate_naive_lines()
+            if len(hmms)>3:
+                raise AssertionError("generate_poem(): invalid input!")
+
+        except AttributeError:
+            #single input
+            print "Generating poem for stanza type \""+hmms.stanza+"\""
+            poem=hmms.generate_lines()
+
+        if filename:
+            f=open(filename,'w')
+            f.write(poem)
+            f.close()
+        else:
+            print poem
+            
 def main():
 
     filenames=['data/shakespeare.txt']
@@ -354,6 +386,8 @@ def main():
     poem_dict={"quatrain":qHMM,"volta":vHMM,"couplet":cHMM}
 
     HMM.generate_poem(poem_dict)
+
+    #HMM.generate_naive_poem(poem_dict)
 
 #    myHMM=HMM()
 #    myHMM.load_data(filenames)
