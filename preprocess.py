@@ -339,13 +339,13 @@ class dataHandler:
                 if word in special_words:
                     word=word.capitalize()
 
-                print word+" ("+self.pos_dict[word]+") ",
+                #print word+" ("+self.pos_dict[word]+") ",
                 line.append(word)
                 word_count+=1
                 #check end conditions: end state or syllable max reached
                 if new_state==(len(A[0,:])-1) or syllable_count>=self.num_syllables:
                     #print "Line "+str(i)+" has "+str(syllable_count)+" syllables."
-                    print ""
+                    #print ""
                     break
 
             #reverse line
