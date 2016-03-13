@@ -37,6 +37,8 @@ class dataHandler:
         self.pos_double=[]    #populated in syllable_pos_setup
 
         #Dictionaries
+        self.pos_lead={}
+        self.pos_restrict_lead={}
         self.tag_dict={}      #populated in syllable_pos_setup
         self.syllable_dict={} #word is key
         self.pos_dict={}
@@ -339,19 +341,19 @@ class dataHandler:
                 if word in special_words:
                     word=word.capitalize()
 
-                #print word+" ("+self.pos_dict[word]+") ",
+                print word+" ("+self.pos_dict[word.lower()]+") ",
                 line.append(word)
                 word_count+=1
                 #check end conditions: end state or syllable max reached
-                if curr_state==(len(A[0,:])-1) or syllable_count>=self.num_syllables:
-                    #print "Line "+str(i)+" has "+str(syllable_count)+" syllables."
+                if syllable_count>=self.num_syllables:#curr_state==(len(A[0,:])-1) or :
+                    print "Line "+str(i)+" has "+str(syllable_count)+" syllables."
                     #print ""
                     break
 
             #Remove NULL
-            if curr_state==(len(A[0,:])-1):
-                line = line[:-1]
-                
+            #if curr_state==(len(A[0,:])-1):
+            #    line = line[:-1]
+
             #reverse line
             line.reverse()
 
@@ -428,8 +430,8 @@ class dataHandler:
 
                 line.append(word)
                 word_count+=1
-                #check end conditions: end state 
-                if curr_state==(len(A[0,:])-1): 
+                #check end conditions: end state
+                if curr_state==(len(A[0,:])-1):
                     break
 
             line = line[:-1]
@@ -511,7 +513,12 @@ class dataHandler:
                         good=False
                 #check POS if necessary
                 if curr_POS:
-                    if self.pos_dict[word]==curr_POS and (curr_POS not in self.pos_double):
+                    pos=self.pos_dict[word]
+                    if pos==curr_POS and (curr_POS not in self.pos_double):
+                        good=False
+                    if pos in self.pos_lead and curr_POS!=self.pos_lead[pos]:
+                        good=False
+                    if curr_POS in self.pos_restrict_lead and pos==self.pos_restrict_lead[curr_POS]:
                         good=False
             except KeyError:
                 #happens with NULL token
@@ -552,10 +559,9 @@ class dataHandler:
           'IN':'Preposition', 'CC':'Conjunction',
           'RP':'Connector','TO':'Connector','MD':'Connector',
           'RB':'Adverb','WR':'Wh-adverb',
-          'DT':'Determiner','WD':'Determiner','PD':'Determiner',
+          'DT':'DetPro','WD':'DetPro','PD':'DetPro','PR':'DetPro', 'WP':'DetPro',
           'CD':'Cardinal',
-          'EX':'Existential there',
-          'PR':'Pronoun', 'WP':'Pronoun'}
+          'EX':'Existential there'}
 
 
 ##        self.tag_dict={'NN':'Noun', 'JJ':'Adjective','RB':'Adverb','VB':'Verb',
@@ -566,6 +572,14 @@ class dataHandler:
 
         #POS which are allowed to happen twice in a row
         self.pos_double=[]#['Noun','Adjective']
+
+        #POS which can only occur sequentially
+        #i.e. an Adverb must occur in fron of a verb
+        self.pos_lead={'Adverb':'Verb','Pronoun':'Noun'}
+
+        #POS which cannot occur sequentially
+        #i.e. a preposition cannot come before a verb
+        self.pos_restrict_lead={'Preposition':'Verb'}
 
         return
 
@@ -634,6 +648,9 @@ class dataHandler:
         for i in range(len(sentence)):
             tag=tags[i][1][:2]
             word=sentence[i]
+            if word=="i":
+                #I often gets mislabelled
+                tag='PR'
             try:
                 self.pos_dict[word]=self.tag_dict[tag]
             except KeyError:
@@ -657,8 +674,9 @@ def main():
 
     #hyp_list=pyhyphen_setup()
 
-    check="Look at me".split(' ')
-    data.gen_pos_info(check)
+    check="And guard the shall find pleasing say".split(' ')
+    for word in check:
+        print data.parse_word(word)
 
     #data.gen_syllable_info(check)
 
