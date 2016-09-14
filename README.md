@@ -1,6 +1,6 @@
 # Shakespearebot_9000
 
-Shakespeare Bot 9000 is a shakespearian Sonnet generator based on training hidden Markov Models. Unsupervised training is performed by the EM procedure and sonnet generation is performed using the Viterbi algorithm.
+Shakespeare Bot 9000 is a Shakespearian sonnet generator based on training hidden Markov Models. Unsupervised training is performed by the EM procedure and sonnet generation is performed using the Viterbi algorithm.
 
 Additional constraints are imposed to ensure propery rhyme scheme (abab cdcd efef) as well as proper meter when possible. Basic parts of sentence (POS) tagging helps ensure reasonable sentence structure.
 
