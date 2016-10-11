@@ -4,6 +4,18 @@ Shakespeare Bot 9000 is a Shakespearian sonnet generator based on training hidde
 
 Additional constraints are imposed to ensure propery rhyme scheme (abab cdcd efef) as well as proper meter when possible. Basic parts of sentence (POS) tagging helps ensure reasonable sentence structure.
 
+### Required Packages
+
+- Numpy:
+  - `sudo pip install numpy`
+- NLTK and PyHyphen (for NLP):
+  - `sudo pip install pyhyphen`
+  - `sudo pip install nltk`
+
+### How To Run
+
+`python hmm.py <number of sonnets to generate>`
+
 ##Sample sonnet:
 
 **Eye of the Beholder**
